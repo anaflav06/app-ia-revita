@@ -1,15 +1,23 @@
 from flask import Flask, request
+import html
 import google.generativeai as genai
 from config import GEMINI_API_KEY
 from produtos import PRODUTOS
 
 app = Flask(__name__)
 
+SITE_REVITA = "https://revitamais.com.br"
+WHATSAPP_REVITA = "https://wa.me/5511950547453"
+
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-PROMPT_REVITA = """
+PROMPT_REVITA = f"""
 Você é a atendente virtual da Revita+, uma loja de suplementos.
+
+Informações oficiais:
+Site oficial: {SITE_REVITA}
+WhatsApp oficial: {WHATSAPP_REVITA}
 
 Tom de voz:
 - Português do Brasil.
@@ -20,10 +28,13 @@ Tom de voz:
 Regras:
 - Não invente preços.
 - Não invente promoções.
+- Não invente links.
+- Não use placeholders como [link], [site] ou [preço].
 - Não prometa cura.
 - Não faça diagnóstico médico.
-- Se perguntarem preço, ofereça o link da oferta atual.
+- Se perguntarem preço, envie o site oficial.
 - Se perguntarem frete ou prazo, peça o CEP.
+- Se pedirem site, loja, catálogo, link ou compra, envie sempre: {SITE_REVITA}
 - Sempre conduza para o próximo passo: enviar link, pedir CEP ou entender a necessidade.
 
 Produtos:
@@ -50,7 +61,32 @@ def detectar_produto(mensagem):
 
     return None
 
+def resposta_fixa(mensagem):
+    texto = mensagem.lower()
+
+    if any(p in texto for p in ["site", "loja", "catálogo", "catalogo", "link", "comprar", "compra"]):
+        return f"""Olá! 👋
+
+Claro, envio sim. Você pode acessar nossa loja oficial aqui:
+
+{SITE_REVITA}
+
+Lá você encontra todos os produtos, ofertas e novidades da Revita+. 💜
+
+Se quiser, também posso te ajudar a escolher o produto ideal."""
+
+    if any(p in texto for p in ["frete", "entrega", "prazo"]):
+        return """Claro! 🚚
+
+Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
+
+    return None
+
 def gerar_resposta_revita(mensagem):
+    fixa = resposta_fixa(mensagem)
+    if fixa:
+        return fixa
+
     produto = detectar_produto(mensagem)
 
     contexto_produto = ""
@@ -77,7 +113,7 @@ Atendente Revita+:
     if resposta and resposta.text:
         texto = resposta.text.strip()
 
-        if produto:
+        if produto and produto["link"] not in texto:
             texto += f'\n\nConfira aqui: {produto["link"]}'
 
         return texto
@@ -237,6 +273,9 @@ def mostrar_resposta(mensagem):
 
         texto_resposta = gerar_resposta_revita(mensagem)
 
+        mensagem_segura = html.escape(mensagem)
+        resposta_segura = html.escape(texto_resposta)
+
         return f"""
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -287,6 +326,10 @@ def mostrar_resposta(mensagem):
                     text-decoration: none;
                 }}
 
+                a.botao.whats {{
+                    background: #25D366;
+                }}
+
                 a.voltar {{
                     display: block;
                     text-align: center;
@@ -302,19 +345,19 @@ def mostrar_resposta(mensagem):
 
                 <div class="cliente">
                     <strong>Cliente:</strong><br>
-                    {mensagem}
+                    {mensagem_segura}
                 </div>
 
                 <div class="bot">
                     <strong>Revita+:</strong><br>
-                    {texto_resposta}
+                    {resposta_segura}
                 </div>
 
-                <a class="botao" href="https://revitamais.com.br/" target="_blank">
+                <a class="botao" href="{SITE_REVITA}" target="_blank">
                     Comprar agora
                 </a>
 
-                <a class="botao" href="https://wa.me/5511950547453" target="_blank">
+                <a class="botao whats" href="{WHATSAPP_REVITA}" target="_blank">
                     Falar com especialista
                 </a>
 
@@ -329,7 +372,7 @@ def mostrar_resposta(mensagem):
     except Exception as e:
         return f"""
         <h2>Erro na IA</h2>
-        <p>{str(e)}</p>
+        <p>{html.escape(str(e))}</p>
         <br>
         <a href="/">Voltar</a>
         """
