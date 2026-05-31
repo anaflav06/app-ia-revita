@@ -13,12 +13,7 @@ SITE_REVITA = "https://revitamais.com.br"
 WHATSAPP_REVITA = "https://wa.me/5511950547453"
 
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-EVOLUTION_API_URL = os.getenv(
-    "EVOLUTION_API_URL",
-    "https://evolution-api-production-9927.up.railway.app"
-)
-
+EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL", "https://evolution-api-production-9927.up.railway.app")
 EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
 EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "Revita")
 
@@ -27,33 +22,20 @@ TEMPO_FOLLOWUP_MINUTOS = 60
 
 CLIENTES_EM_PAUSA = {}
 ULTIMA_INTERACAO = {}
-
 TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 COMANDOS_MENU = [
     "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
     "menu", "menu inicial", "voltar menu", "voltar ao menu",
     "começar", "comecar", "iniciar", "reiniciar",
-    "tenho interesse",
-    "queria mais informações",
-    "quero mais informações",
-    "mais informações",
-    "mais informacoes",
-    "informações",
-    "informacoes"
+    "tenho interesse", "queria mais informações", "quero mais informações",
+    "mais informações", "mais informacoes", "informações", "informacoes"
 ]
 
 GATILHOS_MENU = [
-    "tenho interesse",
-    "queria mais informações",
-    "quero mais informações",
-    "mais informações",
-    "mais informacoes",
-    "informações",
-    "informacoes",
-    "interesse",
-    "gostaria de saber",
-    "quero saber mais"
+    "tenho interesse", "queria mais informações", "quero mais informações",
+    "mais informações", "mais informacoes", "informações", "informacoes",
+    "interesse", "gostaria de saber", "quero saber mais"
 ]
 
 PRODUTOS = {
@@ -66,7 +48,7 @@ PRODUTOS = {
     "revita_hair": {
         "nome": "Revita Hair Gummies",
         "preco": "R$89,90",
-        "descricao": "Gummies para cuidado com cabelo, pele e unhas, ajudando na rotina de beleza.",
+        "descricao": "Gummies para cuidado com cabelo, pele e unhas.",
         "link": "https://revitamais.com.br/produtos/hair-30-unidades-gummys/"
     },
     "complexo_b": {
@@ -107,6 +89,57 @@ PRODUTOS = {
     }
 }
 
+KITS = {
+    "energia_total": {
+        "nome": "KIT – Energia Total",
+        "preco": "R$229,90",
+        "descricao": "Kit para quem busca mais energia, disposição e suporte nutricional na rotina.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "articulacoes_mobilidade": {
+        "nome": "KIT – Articulações & Mobilidade",
+        "preco": "R$149,90",
+        "descricao": "Kit voltado para suporte às articulações, mobilidade e cuidado diário.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "saude_masculina": {
+        "nome": "KIT – Saúde Masculina",
+        "preco": "R$149,90",
+        "descricao": "Kit pensado para complementar a rotina nutricional masculina.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "saude_feminina": {
+        "nome": "KIT – Saúde Feminina",
+        "preco": "R$219,99",
+        "descricao": "Kit pensado para complementar a rotina nutricional feminina.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "foco_energia": {
+        "nome": "KIT – Foco & Energia",
+        "preco": "R$129,99",
+        "descricao": "Kit para rotina, foco, energia e disposição.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "beleza_completa": {
+        "nome": "KIT – Beleza Completa",
+        "preco": "R$169,99",
+        "descricao": "Kit para rotina de beleza, pele, cabelo e unhas.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "beleza_essencial": {
+        "nome": "KIT – Beleza Essencial",
+        "preco": "R$119,99",
+        "descricao": "Kit essencial para cuidado diário com beleza.",
+        "link": "https://revitamais.com.br/kits/"
+    },
+    "imunidade_energia": {
+        "nome": "KIT – Imunidade & Energia",
+        "preco": "R$149,99",
+        "descricao": "Kit para suporte nutricional, imunidade e energia.",
+        "link": "https://revitamais.com.br/kits/"
+    }
+}
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel("gemini-2.5-flash")
@@ -117,10 +150,6 @@ else:
 PROMPT_REVITA = f"""
 Você é a atendente virtual da Revita+, uma loja de suplementos.
 
-Informações oficiais:
-Site oficial: {SITE_REVITA}
-WhatsApp oficial: {WHATSAPP_REVITA}
-
 Tom de voz:
 - Português do Brasil.
 - Simpática, objetiva, acolhedora e vendedora.
@@ -128,7 +157,7 @@ Tom de voz:
 - Use emojis com moderação.
 - Primeiro ajude o cliente. Não force venda em toda resposta.
 
-Regras importantes:
+Regras:
 - Não invente preços.
 - Não invente promoções.
 - Não invente links.
@@ -137,21 +166,12 @@ Regras importantes:
 - Não faça diagnóstico médico.
 - Não diga que produto trata doença.
 - Se perguntarem frete ou prazo, peça o CEP.
-- Se a dúvida for sobre produto, explique de forma simples e pergunte o objetivo do cliente.
-- Se pedirem preço, link, catálogo, loja ou compra, informe o valor cadastrado e o link direto do produto quando houver.
-- Se o cliente pedir atendente, pessoa, humano ou consultora, informe o horário de atendimento e tempo médio de resposta.
+- Se pedirem preço, link, catálogo, loja ou compra, informe o valor cadastrado e o link direto quando houver.
+- Se pedirem atendente, informe horário de atendimento e tempo médio de resposta.
 - Não ofereça Gummies infantil.
 - Não ofereça Colágeno em pó.
 
-Produtos Revita+ disponíveis:
-- Ômega 3 Concentrado: R$109,90.
-- Revita Hair Gummies: R$89,90.
-- Complexo B Gummies: R$89,90.
-- Multivitamínico A-Z: R$59,90.
-- Multivitamínico Mulher: R$60,75.
-- Multivitamínico Homem: R$60,75.
-- Colágeno Tipo 2: R$59,90.
-- Skin + Ácido Hialurônico + Vitamina C: R$59,90.
+Site oficial: {SITE_REVITA}
 """
 
 
@@ -161,19 +181,14 @@ def normalizar_texto(texto):
 
 def pediu_menu(mensagem):
     texto = normalizar_texto(mensagem)
-
     if texto in COMANDOS_MENU:
         return True
-
     return any(gatilho in texto for gatilho in GATILHOS_MENU)
 
 
 def horario_atendimento_aberto():
     agora = datetime.now(TZ_BRASIL)
-    dia_semana = agora.weekday()
-    hora = agora.hour
-
-    return dia_semana <= 4 and 8 <= hora < 18
+    return agora.weekday() <= 4 and 8 <= agora.hour < 18
 
 
 def mensagem_atendente():
@@ -196,13 +211,10 @@ até 30 minutos."""
 def pausar_cliente(telefone):
     if telefone:
         CLIENTES_EM_PAUSA[telefone] = datetime.now() + timedelta(minutes=TEMPO_PAUSA_MINUTOS)
-        print(f"Cliente {telefone} pausado até {CLIENTES_EM_PAUSA[telefone]}")
 
 
 def remover_pausa_cliente(telefone):
-    if telefone in CLIENTES_EM_PAUSA:
-        CLIENTES_EM_PAUSA.pop(telefone, None)
-        print(f"Pausa removida para o cliente {telefone}")
+    CLIENTES_EM_PAUSA.pop(telefone, None)
 
 
 def cliente_esta_em_pausa(telefone):
@@ -215,11 +227,9 @@ def cliente_esta_em_pausa(telefone):
         return False
 
     if datetime.now() < pausa_ate:
-        print(f"Cliente {telefone} ainda está em pausa até {pausa_ate}")
         return True
 
     CLIENTES_EM_PAUSA.pop(telefone, None)
-    print(f"Pausa do cliente {telefone} finalizada.")
     return False
 
 
@@ -232,8 +242,6 @@ def agendar_followup(telefone):
     if not telefone:
         return
 
-    momento_base = ULTIMA_INTERACAO.get(telefone, datetime.now())
-
     def enviar_followup():
         ultima = ULTIMA_INTERACAO.get(telefone)
 
@@ -245,7 +253,7 @@ def agendar_followup(telefone):
         if passou_tempo and not cliente_esta_em_pausa(telefone):
             texto = """Oi! Você ainda está aí? 💚
 
-Posso te ajudar com alguma dúvida sobre os produtos da Revita+?"""
+Posso te ajudar com alguma dúvida sobre os produtos ou kits da Revita+?"""
             enviar_whatsapp(telefone, texto)
 
     timer = threading.Timer(TEMPO_FOLLOWUP_MINUTOS * 60, enviar_followup)
@@ -260,18 +268,9 @@ def cliente_pediu_atendente(mensagem):
         return True
 
     palavras = [
-        "atendente",
-        "humano",
-        "pessoa",
-        "consultora",
-        "consultor",
-        "falar com alguém",
-        "falar com alguem",
-        "quero atendimento",
-        "me chama",
-        "me liga",
-        "vendedora",
-        "vendedor"
+        "atendente", "humano", "pessoa", "consultora", "consultor",
+        "falar com alguém", "falar com alguem", "quero atendimento",
+        "me chama", "me liga", "vendedora", "vendedor"
     ]
 
     return any(p in texto for p in palavras)
@@ -310,8 +309,9 @@ Posso te apresentar as opções disponíveis da Revita+:
 2️⃣ Colágeno Tipo 2
 3️⃣ Ômega 3
 4️⃣ Multivitamínicos
-5️⃣ Ver catálogo / comprar
-6️⃣ Falar com atendente
+5️⃣ Kits promocionais
+6️⃣ Ver catálogo / comprar
+7️⃣ Falar com atendente
 
 💡 Digite MENU INICIAL para voltar ao menu principal."""
 
@@ -325,12 +325,101 @@ Como posso te ajudar hoje?
 2️⃣ Colágeno Tipo 2
 3️⃣ Ômega 3
 4️⃣ Multivitamínicos
-5️⃣ Ver catálogo / comprar
-6️⃣ Falar com atendente
+5️⃣ Kits promocionais
+6️⃣ Ver catálogo / comprar
+7️⃣ Falar com atendente
 
 💡 Digite MENU INICIAL para voltar a este menu quando quiser.
 
 É só responder com o número da opção. 💚"""
+
+
+def lista_kits():
+    return f"""Temos kits promocionais Revita+ 💚
+
+✨ {KITS["beleza_essencial"]["nome"]}
+💰 {KITS["beleza_essencial"]["preco"]}
+
+✨ {KITS["beleza_completa"]["nome"]}
+💰 {KITS["beleza_completa"]["preco"]}
+
+✨ {KITS["energia_total"]["nome"]}
+💰 {KITS["energia_total"]["preco"]}
+
+✨ {KITS["saude_feminina"]["nome"]}
+💰 {KITS["saude_feminina"]["preco"]}
+
+✨ {KITS["saude_masculina"]["nome"]}
+💰 {KITS["saude_masculina"]["preco"]}
+
+✨ {KITS["articulacoes_mobilidade"]["nome"]}
+💰 {KITS["articulacoes_mobilidade"]["preco"]}
+
+✨ {KITS["foco_energia"]["nome"]}
+💰 {KITS["foco_energia"]["preco"]}
+
+✨ {KITS["imunidade_energia"]["nome"]}
+💰 {KITS["imunidade_energia"]["preco"]}
+
+🔗 Ver todos os kits:
+https://revitamais.com.br/kits/
+
+Qual deles você quer conhecer melhor?"""
+
+
+def detectar_kit(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    if any(p in texto for p in ["beleza essencial", "kit beleza essencial"]):
+        return KITS["beleza_essencial"]
+
+    if any(p in texto for p in ["beleza completa", "kit beleza completa"]):
+        return KITS["beleza_completa"]
+
+    if any(p in texto for p in ["energia total", "kit energia total"]):
+        return KITS["energia_total"]
+
+    if any(p in texto for p in ["saúde feminina", "saude feminina", "kit feminino", "kit mulher"]):
+        return KITS["saude_feminina"]
+
+    if any(p in texto for p in ["saúde masculina", "saude masculina", "kit masculino", "kit homem"]):
+        return KITS["saude_masculina"]
+
+    if any(p in texto for p in ["articulações", "articulacoes", "mobilidade", "kit articulações", "kit articulacoes"]):
+        return KITS["articulacoes_mobilidade"]
+
+    if any(p in texto for p in ["foco", "foco e energia", "kit foco"]):
+        return KITS["foco_energia"]
+
+    if any(p in texto for p in ["imunidade", "imunidade e energia", "kit imunidade"]):
+        return KITS["imunidade_energia"]
+
+    return None
+
+
+def pediu_kits(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    palavras = [
+        "kit", "kits", "combo", "combos", "promoção", "promocao",
+        "promoções", "promocoes", "mais vendido", "mais vendidos",
+        "pacote", "pacotes", "economizar"
+    ]
+
+    return any(p in texto for p in palavras)
+
+
+def resposta_kit_com_preco(kit):
+    return f"""{kit["nome"]} 💚
+
+{kit["descricao"]}
+
+💰 Valor: {kit["preco"]}
+
+🔗 Link direto:
+{kit["link"]}
+
+Quer que eu te ajude a escolher o melhor kit para o seu objetivo?"""
 
 
 def resposta_menu(mensagem):
@@ -340,16 +429,15 @@ def resposta_menu(mensagem):
         return menu_principal()
 
     if texto in ["1", "opção 1", "opcao 1"]:
-        p1 = PRODUTOS["revita_hair"]
-        p2 = PRODUTOS["skin"]
-
         return f"""Temos opções para cabelo, pele e unhas. 💚
 
-✨ {p1["nome"]}
-💰 Valor: {p1["preco"]}
+✨ {PRODUTOS["revita_hair"]["nome"]}
+💰 Valor: {PRODUTOS["revita_hair"]["preco"]}
 
-✨ {p2["nome"]}
-💰 Valor: {p2["preco"]}
+✨ {PRODUTOS["skin"]["nome"]}
+💰 Valor: {PRODUTOS["skin"]["preco"]}
+
+Também temos kits de beleza na opção 5.
 
 Você procura algo mais para cabelo, pele ou unhas?"""
 
@@ -358,7 +446,7 @@ Você procura algo mais para cabelo, pele ou unhas?"""
 
         return f"""Temos o {p["nome"]}. 💚
 
-Ele é uma opção para quem busca suporte para articulações, mobilidade e cuidado diário.
+Ele é uma opção para suporte às articulações, mobilidade e cuidado diário.
 
 💰 Valor: {p["preco"]}
 
@@ -393,13 +481,16 @@ Você já usa ômega 3 ou está começando agora?"""
 Você procura para mulher, homem, disposição ou rotina geral?"""
 
     if texto in ["5", "opção 5", "opcao 5"]:
-        return f"""Claro! Você pode ver todos os produtos na loja oficial da Revita+:
+        return lista_kits()
+
+    if texto in ["6", "opção 6", "opcao 6"]:
+        return f"""Claro! Você pode ver todos os produtos e kits na loja oficial da Revita+:
 
 {SITE_REVITA}
 
 Se quiser, também posso te ajudar a escolher o produto ideal."""
 
-    if texto in ["6", "opção 6", "opcao 6", "7", "opção 7", "opcao 7"]:
+    if texto in ["7", "opção 7", "opcao 7"]:
         return mensagem_atendente()
 
     return None
@@ -417,15 +508,10 @@ def detectar_produto(mensagem):
     ]):
         return PRODUTOS.get("colageno_tipo2")
 
-    if any(p in texto for p in [
-        "colageno", "colágeno"
-    ]):
+    if any(p in texto for p in ["colageno", "colágeno"]):
         return PRODUTOS.get("colageno_tipo2")
 
-    if any(p in texto for p in [
-        "omega", "ômega", "omega 3", "ômega 3", "oleo de peixe",
-        "óleo de peixe"
-    ]):
+    if any(p in texto for p in ["omega", "ômega", "omega 3", "ômega 3", "oleo de peixe", "óleo de peixe"]):
         return PRODUTOS.get("omega")
 
     if any(p in texto for p in [
@@ -442,28 +528,16 @@ def detectar_produto(mensagem):
     ]):
         return PRODUTOS.get("skin")
 
-    if any(p in texto for p in [
-        "mulher", "feminino", "multivitaminico mulher",
-        "multivitamínico mulher", "vitamina mulher"
-    ]):
+    if any(p in texto for p in ["mulher", "feminino", "multivitaminico mulher", "multivitamínico mulher", "vitamina mulher"]):
         return PRODUTOS.get("multivitaminico_mulher")
 
-    if any(p in texto for p in [
-        "homem", "masculino", "multivitaminico homem",
-        "multivitamínico homem", "vitamina homem"
-    ]):
+    if any(p in texto for p in ["homem", "masculino", "multivitaminico homem", "multivitamínico homem", "vitamina homem"]):
         return PRODUTOS.get("multivitaminico_homem")
 
-    if any(p in texto for p in [
-        "complexo b", "vitamina b", "b12", "b6", "energia",
-        "disposição", "disposicao", "cansaço", "cansaco"
-    ]):
+    if any(p in texto for p in ["complexo b", "vitamina b", "b12", "b6", "energia", "disposição", "disposicao", "cansaço", "cansaco"]):
         return PRODUTOS.get("complexo_b")
 
-    if any(p in texto for p in [
-        "multi", "vitamina", "vitaminas", "multivitaminico",
-        "multivitamínico", "minerais"
-    ]):
+    if any(p in texto for p in ["multi", "vitamina", "vitaminas", "multivitaminico", "multivitamínico", "minerais"]):
         return PRODUTOS.get("multivitaminico")
 
     return None
@@ -495,6 +569,17 @@ def resposta_fixa(mensagem):
     if cliente_pediu_atendente(mensagem):
         return mensagem_atendente()
 
+    kit = detectar_kit(mensagem)
+
+    if kit and pediu_preco_link_ou_compra(mensagem):
+        return resposta_kit_com_preco(kit)
+
+    if kit:
+        return resposta_kit_com_preco(kit)
+
+    if pediu_kits(mensagem):
+        return lista_kits()
+
     produto = detectar_produto(mensagem)
 
     if pediu_preco_link_ou_compra(mensagem):
@@ -507,9 +592,9 @@ Você pode acessar nossa loja oficial aqui:
 
 {SITE_REVITA}
 
-Lá você encontra os produtos disponíveis da Revita+. 💚
+Lá você encontra os produtos e kits disponíveis da Revita+. 💚
 
-Se quiser, me diga qual produto você procura que eu te envio o valor e o link direto."""
+Se quiser, me diga qual produto ou kit você procura que eu te envio o valor e o link direto."""
 
     if any(p in texto for p in ["frete", "entrega", "prazo"]):
         return """Claro! 🚚
@@ -528,10 +613,12 @@ def gerar_resposta_revita(mensagem):
         return fixa
 
     produto = detectar_produto(mensagem)
+    kit = detectar_kit(mensagem)
 
-    contexto_produto = ""
+    contexto = ""
+
     if produto:
-        contexto_produto = f"""
+        contexto += f"""
 Produto identificado:
 Nome: {produto.get("nome", "")}
 Descrição: {produto.get("descricao", "")}
@@ -539,15 +626,24 @@ Preço: {produto.get("preco", "")}
 Link direto: {produto.get("link", SITE_REVITA)}
 """
 
+    if kit:
+        contexto += f"""
+Kit identificado:
+Nome: {kit.get("nome", "")}
+Descrição: {kit.get("descricao", "")}
+Preço: {kit.get("preco", "")}
+Link direto: {kit.get("link", SITE_REVITA)}
+"""
+
     prompt_completo = f"""
 {PROMPT_REVITA}
 
-{contexto_produto}
+{contexto}
 
 Cliente: {mensagem}
 
 Responda primeiro a dúvida do cliente.
-Se houver produto identificado, pode informar o valor.
+Se houver produto ou kit identificado, pode informar o valor.
 Só envie link direto se o cliente pedir preço, compra, link, catálogo ou loja.
 Finalize com uma pergunta simples para continuar o atendimento.
 
@@ -641,7 +737,7 @@ def home():
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px;">
                 <a href="/rapida?msg=menu" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Menu</a>
-                <a href="/rapida?msg=Quero saber sobre colágeno tipo 2" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Colágeno</a>
+                <a href="/rapida?msg=Quero saber sobre kits" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Kits</a>
                 <a href="/rapida?msg=Quero saber sobre ômega 3" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Ômega 3</a>
                 <a href="/rapida?msg=Quero algo para cabelo" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Cabelo</a>
             </div>
