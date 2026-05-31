@@ -53,6 +53,7 @@ Regras importantes:
 - Se perguntarem frete ou prazo, peça o CEP.
 - Se a dúvida for sobre produto, explique de forma simples e pergunte o objetivo do cliente.
 - Só envie o site se o cliente pedir compra, preço, link, catálogo ou loja.
+- Se o cliente pedir atendente, pessoa, humano ou consultora, responda que em breve uma consultora irá atender.
 
 Produtos Revita+:
 - Colágeno Verisol + Ácido Hialurônico: firmeza, elasticidade, hidratação e beleza da pele.
@@ -80,7 +81,7 @@ Como posso te ajudar hoje?
 6️⃣ Ver catálogo / comprar
 7️⃣ Falar com atendente
 
-É só responder com o número da opção. 💜"""
+É só responder com o número da opção. 💚"""
 
 
 def resposta_menu(mensagem):
@@ -90,7 +91,7 @@ def resposta_menu(mensagem):
         return menu_principal()
 
     if texto in ["1", "opção 1", "opcao 1"]:
-        return """Temos opções para cabelo, pele e unhas. 💜
+        return """Temos opções para cabelo, pele e unhas. 💚
 
 ✨ Revita Hair: indicado para quem busca cuidado com os fios e rotina capilar.
 ✨ Gummies Cabelo, Pele e Unhas: opção prática em gummy para rotina de beleza.
@@ -98,21 +99,21 @@ def resposta_menu(mensagem):
 Você procura algo mais para cabelo, pele ou unhas?"""
 
     if texto in ["2", "opção 2", "opcao 2"]:
-        return """Temos o Colágeno Verisol + Ácido Hialurônico Revita+. 💜
+        return """Temos o Colágeno Verisol + Ácido Hialurônico Revita+. 💚
 
 Ele é uma opção para quem busca cuidado com a pele, firmeza, elasticidade e hidratação.
 
 Você quer usar mais para firmeza da pele, hidratação ou prevenção?"""
 
     if texto in ["3", "opção 3", "opcao 3"]:
-        return """Temos o Ômega 3 Revita+. 💜
+        return """Temos o Ômega 3 Revita+. 💚
 
 Ele é muito procurado para complementar a rotina de bem-estar e suporte nutricional diário.
 
 Você já usa ômega 3 ou está começando agora?"""
 
     if texto in ["4", "opção 4", "opcao 4"]:
-        return """Temos opções de multivitamínicos Revita+. 💜
+        return """Temos opções de multivitamínicos Revita+. 💚
 
 ✨ Multivitamínico tradicional
 ✨ Multivitamínico Mulher
@@ -122,7 +123,7 @@ Você já usa ômega 3 ou está começando agora?"""
 Você procura para mulher, homem, disposição ou rotina geral?"""
 
     if texto in ["5", "opção 5", "opcao 5"]:
-        return """Temos o Kids Gummies Revita+. 💜
+        return """Temos o Kids Gummies Revita+. 💚
 
 É uma opção infantil em formato gummy para complementar a rotina das crianças.
 
@@ -136,10 +137,7 @@ Qual a idade da criança?"""
 Se quiser, também posso te ajudar a escolher o produto ideal."""
 
     if texto in ["7", "opção 7", "opcao 7"]:
-        return f"""Claro! Vou te direcionar para uma consultora da Revita+. 💜
-
-WhatsApp oficial:
-{WHATSAPP_REVITA}"""
+        return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚"""
 
     return None
 
@@ -219,7 +217,7 @@ Você pode acessar nossa loja oficial aqui:
 
 {SITE_REVITA}
 
-Lá você encontra os produtos disponíveis da Revita+. 💜
+Lá você encontra os produtos disponíveis da Revita+. 💚
 
 Se quiser, me diga o que você procura que eu te ajudo a escolher."""
 
@@ -229,7 +227,7 @@ Se quiser, me diga o que você procura que eu te ajudo a escolher."""
 Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
 
     if any(p in texto for p in ["preço", "preco", "valor", "quanto custa", "quanto é", "quanto e"]):
-        return f"""Os valores podem variar conforme ofertas e disponibilidade. 💜
+        return f"""Os valores podem variar conforme ofertas e disponibilidade. 💚
 
 Você pode consultar os preços atualizados na loja oficial:
 
@@ -238,10 +236,7 @@ Você pode consultar os preços atualizados na loja oficial:
 Se quiser, me diga qual produto você quer que eu te ajudo."""
 
     if any(p in texto for p in ["atendente", "humano", "pessoa", "consultora", "falar com alguém", "falar com alguem"]):
-        return f"""Claro! Vou te direcionar para uma consultora da Revita+. 💜
-
-WhatsApp oficial:
-{WHATSAPP_REVITA}"""
+        return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚"""
 
     return None
 
@@ -354,7 +349,7 @@ def home():
     </head>
     <body style="font-family: Arial; background:#f8f4fa; display:flex; justify-content:center; align-items:center; min-height:100vh;">
         <div style="background:white; padding:30px; border-radius:20px; width:420px; box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-            <h2 style="text-align:center; color:#6f3c8f;">Revita+ IA 💜</h2>
+            <h2 style="text-align:center; color:#6f3c8f;">Revita+ IA 💚</h2>
             <p style="text-align:center;">Assistente virtual de suplementos</p>
 
             <form action="/perguntar" method="post">
@@ -404,7 +399,7 @@ def mostrar_resposta(mensagem):
         <head><meta charset="UTF-8"><title>Resposta Revita+</title></head>
         <body style="font-family:Arial; background:#f8f4fa; padding:40px;">
             <div style="background:white; padding:25px; border-radius:20px; max-width:500px; margin:auto;">
-                <h2>Revita+ IA 💜</h2>
+                <h2>Revita+ IA 💚</h2>
                 <p><strong>Cliente:</strong><br>{html.escape(mensagem)}</p>
                 <p style="background:#f1e8f6; padding:15px; border-radius:12px; white-space:pre-line;">
                     <strong>Revita+:</strong><br>{html.escape(texto_resposta)}
