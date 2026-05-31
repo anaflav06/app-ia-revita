@@ -51,27 +51,75 @@ Regras:
 - Se pedirem site, loja, catálogo, link ou compra, envie sempre: {SITE_REVITA}
 - Sempre conduza para o próximo passo.
 
-Produtos:
+Produtos Revita+:
 - Colágeno Verisol + Ácido Hialurônico: firmeza, elasticidade, hidratação e beleza da pele.
 - Ômega 3: bem-estar geral e suporte nutricional.
-- Multivitamínico: vitaminas e minerais para o dia a dia.
 - Gummies Cabelo, Pele e Unhas: cuidado prático diário com beleza.
+- Revita Hair: cuidado capilar, fortalecimento dos fios e rotina para cabelos.
+- Multivitamínico: vitaminas e minerais para o dia a dia.
+- Multivitamínico Mulher: suporte nutricional para rotina feminina.
+- Multivitamínico Homem: suporte nutricional para rotina masculina.
+- Complexo B Gummies: vitaminas do complexo B para rotina, energia e disposição.
+- Kids Gummies: suplemento infantil em formato gummy.
 """
 
 def detectar_produto(mensagem):
     texto = mensagem.lower()
 
-    if "colageno" in texto or "colágeno" in texto or "pele" in texto or "firmeza" in texto:
+    if any(p in texto for p in [
+        "colageno", "colágeno", "verisol", "acido hialuronico",
+        "ácido hialurônico", "hialuronico", "hialurônico", "pele",
+        "firmeza", "elasticidade", "hidratação", "hidratacao"
+    ]):
         return PRODUTOS.get("colageno")
 
-    if "omega" in texto or "ômega" in texto or "omega 3" in texto or "ômega 3" in texto:
+    if any(p in texto for p in [
+        "omega", "ômega", "omega 3", "ômega 3", "oleo de peixe",
+        "óleo de peixe"
+    ]):
         return PRODUTOS.get("omega")
 
-    if "multi" in texto or "vitamina" in texto or "multivitaminico" in texto or "multivitamínico" in texto:
-        return PRODUTOS.get("multivitaminico")
+    if any(p in texto for p in [
+        "revita hair", "hair", "queda", "cabelo fraco",
+        "crescimento capilar", "fortalecer cabelo", "fio", "fios"
+    ]):
+        return PRODUTOS.get("revita_hair")
 
-    if "gummies" in texto or "cabelo" in texto or "unha" in texto or "unhas":
+    if any(p in texto for p in [
+        "gummies cabelo", "cabelo pele unhas", "cabelo pele e unhas",
+        "unhas", "unha", "gummy beleza", "gummies beleza"
+    ]):
         return PRODUTOS.get("gummies")
+
+    if any(p in texto for p in [
+        "mulher", "feminino", "multivitaminico mulher",
+        "multivitamínico mulher", "vitamina mulher"
+    ]):
+        return PRODUTOS.get("multivitaminico_mulher")
+
+    if any(p in texto for p in [
+        "homem", "masculino", "multivitaminico homem",
+        "multivitamínico homem", "vitamina homem"
+    ]):
+        return PRODUTOS.get("multivitaminico_homem")
+
+    if any(p in texto for p in [
+        "complexo b", "vitamina b", "b12", "b6", "energia",
+        "disposição", "disposicao", "cansaço", "cansaco"
+    ]):
+        return PRODUTOS.get("complexo_b")
+
+    if any(p in texto for p in [
+        "kids", "criança", "crianca", "infantil", "gummy infantil",
+        "gummies infantil", "vitamina infantil", "crianças", "criancas"
+    ]):
+        return PRODUTOS.get("kids")
+
+    if any(p in texto for p in [
+        "multi", "vitamina", "vitaminas", "multivitaminico",
+        "multivitamínico", "minerais"
+    ]):
+        return PRODUTOS.get("multivitaminico")
 
     return None
 
@@ -85,12 +133,28 @@ Claro, envio sim. Você pode acessar nossa loja oficial aqui:
 
 {SITE_REVITA}
 
-Lá você encontra todos os produtos, ofertas e novidades da Revita+. 💜"""
+Lá você encontra todos os produtos, ofertas e novidades da Revita+. 💜
+
+Se quiser, também posso te ajudar a escolher o produto ideal."""
 
     if any(p in texto for p in ["frete", "entrega", "prazo"]):
         return """Claro! 🚚
 
 Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
+
+    if any(p in texto for p in ["preço", "preco", "valor", "quanto custa"]):
+        return f"""Os valores podem variar conforme ofertas e disponibilidade. 💜
+
+Você pode consultar os preços atualizados diretamente na loja oficial:
+
+{SITE_REVITA}"""
+
+    if any(p in texto for p in ["atendente", "humano", "pessoa", "consultora", "falar com alguém", "falar com alguem"]):
+        return f"""Claro! Vou te direcionar para uma consultora da Revita+. 💜
+
+Você também pode chamar pelo WhatsApp oficial:
+
+{WHATSAPP_REVITA}"""
 
     return None
 
@@ -139,6 +203,9 @@ Atendente Revita+:
 
 def extrair_mensagem_e_numero(data):
     try:
+        if data.get("event") != "messages.upsert":
+            return None, None
+
         dados = data.get("data", {})
         key = dados.get("key", {})
         remote_jid = key.get("remoteJid", "")
