@@ -26,6 +26,7 @@ if GEMINI_API_KEY:
 else:
     model = None
 
+
 PROMPT_REVITA = f"""
 Você é a atendente virtual da Revita+, uma loja de suplementos.
 
@@ -36,20 +37,22 @@ WhatsApp oficial: {WHATSAPP_REVITA}
 Tom de voz:
 - Português do Brasil.
 - Simpática, objetiva, acolhedora e vendedora.
-- Respostas curtas, como conversa de WhatsApp.
+- Respostas curtas, naturais e com cara de WhatsApp.
 - Use emojis com moderação.
+- Primeiro ajude o cliente. Não force venda em toda resposta.
 
-Regras:
+Regras importantes:
 - Não invente preços.
 - Não invente promoções.
 - Não invente links.
 - Não use placeholders.
 - Não prometa cura.
 - Não faça diagnóstico médico.
-- Se perguntarem preço, envie o site oficial.
+- Não diga que produto trata doença.
+- Se perguntarem preço, link, catálogo, loja ou compra, envie o site oficial.
 - Se perguntarem frete ou prazo, peça o CEP.
-- Se pedirem site, loja, catálogo, link ou compra, envie sempre: {SITE_REVITA}
-- Sempre conduza para o próximo passo.
+- Se a dúvida for sobre produto, explique de forma simples e pergunte o objetivo do cliente.
+- Só envie o site se o cliente pedir compra, preço, link, catálogo ou loja.
 
 Produtos Revita+:
 - Colágeno Verisol + Ácido Hialurônico: firmeza, elasticidade, hidratação e beleza da pele.
@@ -62,6 +65,84 @@ Produtos Revita+:
 - Complexo B Gummies: vitaminas do complexo B para rotina, energia e disposição.
 - Kids Gummies: suplemento infantil em formato gummy.
 """
+
+
+def menu_principal():
+    return """Olá! 👋 Sou a assistente virtual da Revita+.
+
+Como posso te ajudar hoje?
+
+1️⃣ Cabelo, pele e unhas
+2️⃣ Colágeno
+3️⃣ Ômega 3
+4️⃣ Multivitamínicos
+5️⃣ Gummies infantil
+6️⃣ Ver catálogo / comprar
+7️⃣ Falar com atendente
+
+É só responder com o número da opção. 💜"""
+
+
+def resposta_menu(mensagem):
+    texto = mensagem.lower().strip()
+
+    if texto in ["oi", "olá", "ola", "bom dia", "boa tarde", "boa noite", "menu", "começar", "comecar", "iniciar"]:
+        return menu_principal()
+
+    if texto in ["1", "opção 1", "opcao 1"]:
+        return """Temos opções para cabelo, pele e unhas. 💜
+
+✨ Revita Hair: indicado para quem busca cuidado com os fios e rotina capilar.
+✨ Gummies Cabelo, Pele e Unhas: opção prática em gummy para rotina de beleza.
+
+Você procura algo mais para cabelo, pele ou unhas?"""
+
+    if texto in ["2", "opção 2", "opcao 2"]:
+        return """Temos o Colágeno Verisol + Ácido Hialurônico Revita+. 💜
+
+Ele é uma opção para quem busca cuidado com a pele, firmeza, elasticidade e hidratação.
+
+Você quer usar mais para firmeza da pele, hidratação ou prevenção?"""
+
+    if texto in ["3", "opção 3", "opcao 3"]:
+        return """Temos o Ômega 3 Revita+. 💜
+
+Ele é muito procurado para complementar a rotina de bem-estar e suporte nutricional diário.
+
+Você já usa ômega 3 ou está começando agora?"""
+
+    if texto in ["4", "opção 4", "opcao 4"]:
+        return """Temos opções de multivitamínicos Revita+. 💜
+
+✨ Multivitamínico tradicional
+✨ Multivitamínico Mulher
+✨ Multivitamínico Homem
+✨ Complexo B Gummies
+
+Você procura para mulher, homem, disposição ou rotina geral?"""
+
+    if texto in ["5", "opção 5", "opcao 5"]:
+        return """Temos o Kids Gummies Revita+. 💜
+
+É uma opção infantil em formato gummy para complementar a rotina das crianças.
+
+Qual a idade da criança?"""
+
+    if texto in ["6", "opção 6", "opcao 6"]:
+        return f"""Claro! Você pode ver todos os produtos na loja oficial da Revita+:
+
+{SITE_REVITA}
+
+Se quiser, também posso te ajudar a escolher o produto ideal."""
+
+    if texto in ["7", "opção 7", "opcao 7"]:
+        return f"""Claro! Vou te direcionar para uma consultora da Revita+. 💜
+
+WhatsApp oficial:
+{WHATSAPP_REVITA}"""
+
+    return None
+
 
 def detectar_produto(mensagem):
     texto = mensagem.lower()
@@ -123,40 +204,47 @@ def detectar_produto(mensagem):
 
     return None
 
+
 def resposta_fixa(mensagem):
     texto = mensagem.lower()
 
-    if any(p in texto for p in ["site", "loja", "catálogo", "catalogo", "link", "comprar", "compra"]):
-        return f"""Olá! 👋
+    menu = resposta_menu(mensagem)
+    if menu:
+        return menu
 
-Claro, envio sim. Você pode acessar nossa loja oficial aqui:
+    if any(p in texto for p in ["site", "loja", "catálogo", "catalogo", "link", "comprar", "compra", "quero comprar", "pedido"]):
+        return f"""Claro! 👋
+
+Você pode acessar nossa loja oficial aqui:
 
 {SITE_REVITA}
 
-Lá você encontra todos os produtos, ofertas e novidades da Revita+. 💜
+Lá você encontra os produtos disponíveis da Revita+. 💜
 
-Se quiser, também posso te ajudar a escolher o produto ideal."""
+Se quiser, me diga o que você procura que eu te ajudo a escolher."""
 
     if any(p in texto for p in ["frete", "entrega", "prazo"]):
         return """Claro! 🚚
 
 Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
 
-    if any(p in texto for p in ["preço", "preco", "valor", "quanto custa"]):
+    if any(p in texto for p in ["preço", "preco", "valor", "quanto custa", "quanto é", "quanto e"]):
         return f"""Os valores podem variar conforme ofertas e disponibilidade. 💜
 
-Você pode consultar os preços atualizados diretamente na loja oficial:
+Você pode consultar os preços atualizados na loja oficial:
 
-{SITE_REVITA}"""
+{SITE_REVITA}
+
+Se quiser, me diga qual produto você quer que eu te ajudo."""
 
     if any(p in texto for p in ["atendente", "humano", "pessoa", "consultora", "falar com alguém", "falar com alguem"]):
         return f"""Claro! Vou te direcionar para uma consultora da Revita+. 💜
 
-Você também pode chamar pelo WhatsApp oficial:
-
+WhatsApp oficial:
 {WHATSAPP_REVITA}"""
 
     return None
+
 
 def gerar_resposta_revita(mensagem):
     if not model:
@@ -174,7 +262,7 @@ def gerar_resposta_revita(mensagem):
 Produto identificado:
 Nome: {produto.get("nome", "")}
 Descrição: {produto.get("descricao", "")}
-Link: {produto.get("link", SITE_REVITA)}
+Link oficial, somente se o cliente pedir compra/preço/link: {produto.get("link", SITE_REVITA)}
 """
 
     prompt_completo = f"""
@@ -184,22 +272,20 @@ Link: {produto.get("link", SITE_REVITA)}
 
 Cliente: {mensagem}
 
+Responda primeiro a dúvida do cliente.
+Não envie link de compra, site ou catálogo, a menos que o cliente tenha pedido preço, compra, link, catálogo ou loja.
+Finalize com uma pergunta simples para continuar o atendimento.
+
 Atendente Revita+:
 """
 
     resposta = model.generate_content(prompt_completo)
 
     if resposta and resposta.text:
-        texto = resposta.text.strip()
-
-        if produto:
-            link = produto.get("link")
-            if link and link not in texto:
-                texto += f"\n\nConfira aqui: {link}"
-
-        return texto
+        return resposta.text.strip()
 
     return "Desculpe, não consegui responder agora. Pode repetir a pergunta? 😊"
+
 
 def extrair_mensagem_e_numero(data):
     try:
@@ -230,6 +316,7 @@ def extrair_mensagem_e_numero(data):
         print("Erro ao extrair mensagem:", str(e))
         return None, None
 
+
 def enviar_whatsapp(numero, texto):
     if not EVOLUTION_API_KEY:
         print("ERRO: EVOLUTION_API_KEY não configurada.")
@@ -256,6 +343,7 @@ def enviar_whatsapp(numero, texto):
         print("Erro ao enviar WhatsApp:", str(e))
         return False
 
+
 @app.route("/")
 def home():
     return """
@@ -276,6 +364,13 @@ def home():
                 </button>
             </form>
 
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px;">
+                <a href="/rapida?msg=menu" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Menu</a>
+                <a href="/rapida?msg=Quero saber sobre colágeno" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Colágeno</a>
+                <a href="/rapida?msg=Quero saber sobre ômega 3" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Ômega 3</a>
+                <a href="/rapida?msg=Quero algo para cabelo" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Cabelo</a>
+            </div>
+
             <p style="text-align:center; font-size:12px; color:#777; margin-top:20px;">
                 Atendimento automático Revita+
             </p>
@@ -284,15 +379,18 @@ def home():
     </html>
     """
 
+
 @app.route("/perguntar", methods=["POST"])
 def perguntar():
     mensagem = request.form.get("mensagem", "").strip()
     return mostrar_resposta(mensagem)
 
+
 @app.route("/rapida", methods=["GET"])
 def rapida():
     mensagem = request.args.get("msg", "")
     return mostrar_resposta(mensagem)
+
 
 def mostrar_resposta(mensagem):
     try:
@@ -325,6 +423,7 @@ def mostrar_resposta(mensagem):
         <a href="/">Voltar</a>
         """
 
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
@@ -349,6 +448,7 @@ def webhook():
         "resposta": resposta,
         "enviado": enviado
     }, 200
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
