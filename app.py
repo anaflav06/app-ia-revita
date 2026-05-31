@@ -24,6 +24,10 @@ CLIENTES_EM_PAUSA = {}
 ULTIMA_INTERACAO = {}
 TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
+CUPOM_PRIMEIRA_COMPRA = "PRIMEIRACOMPRA"
+FORMAS_PAGAMENTO = "boleto, Pix ou cartão em até 3x sem juros"
+FRETE_GRATIS = "Frete grátis para todo o Brasil"
+
 COMANDOS_MENU = [
     "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
     "menu", "menu inicial", "voltar menu", "voltar ao menu",
@@ -43,48 +47,56 @@ PRODUTOS = {
         "nome": "Ômega 3 Concentrado - 60 Cápsulas",
         "preco": "R$109,90",
         "descricao": "Suporte nutricional para bem-estar geral e rotina saudável.",
+        "serve": "Serve para complementar a rotina com ômega 3, ajudando no bem-estar geral e suporte nutricional diário.",
         "link": "https://revitamais.com.br/produtos/omega-3-concentrado-60-capsulas/"
     },
     "revita_hair": {
         "nome": "Revita Hair Gummies",
         "preco": "R$89,90",
         "descricao": "Gummies para cuidado com cabelo, pele e unhas.",
+        "serve": "Serve para auxiliar na rotina de beleza, com foco em cabelo, pele e unhas.",
         "link": "https://revitamais.com.br/produtos/hair-30-unidades-gummys/"
     },
     "complexo_b": {
         "nome": "Complexo B Gummies",
         "preco": "R$89,90",
         "descricao": "Vitaminas do complexo B em gummies para rotina, energia e disposição.",
+        "serve": "Serve para complementar a ingestão de vitaminas do complexo B, muito buscadas para rotina, energia e disposição.",
         "link": "https://revitamais.com.br/produtos/complexo-b-30-unidades-gummys/"
     },
     "multivitaminico": {
         "nome": "Multivitamínico A-Z - 30 Cápsulas",
         "preco": "R$59,90",
         "descricao": "Vitaminas e minerais para complementar a rotina diária.",
+        "serve": "Serve para complementar vitaminas e minerais importantes no dia a dia.",
         "link": "https://revitamais.com.br/produtos/multivitaminico-a-z-30-capsulas/"
     },
     "multivitaminico_mulher": {
         "nome": "Multivitamínico Mulher - 30 Cápsulas",
         "preco": "R$60,75",
         "descricao": "Suporte nutricional para a rotina feminina.",
+        "serve": "Serve para complementar a rotina nutricional feminina com vitaminas e minerais.",
         "link": "https://revitamais.com.br/produtos/multivitaminico-mulher-30-capsulas/"
     },
     "multivitaminico_homem": {
         "nome": "Multivitamínico Homem - 30 Cápsulas",
         "preco": "R$60,75",
         "descricao": "Suporte nutricional para a rotina masculina.",
+        "serve": "Serve para complementar a rotina nutricional masculina com vitaminas e minerais.",
         "link": "https://revitamais.com.br/produtos/multivitaminico-homem-30-capsulas/"
     },
     "colageno_tipo2": {
         "nome": "Colágeno Tipo 2 - 30 Cápsulas",
         "preco": "R$59,90",
         "descricao": "Suporte para articulações, mobilidade e cuidado diário.",
+        "serve": "Serve para complementar a rotina de cuidado com articulações e mobilidade.",
         "link": "https://revitamais.com.br/produtos/colageno-tipo-2-30-capsulas/"
     },
     "skin": {
         "nome": "Skin + Ácido Hialurônico + Vitamina C",
         "preco": "R$59,90",
         "descricao": "Suporte para pele, hidratação, firmeza e rotina de beleza.",
+        "serve": "Serve para complementar a rotina de cuidado com a pele, hidratação, firmeza e beleza.",
         "link": SITE_REVITA
     }
 }
@@ -94,48 +106,56 @@ KITS = {
         "nome": "KIT – Energia Total",
         "preco": "R$229,90",
         "descricao": "Kit para quem busca mais energia, disposição e suporte nutricional na rotina.",
+        "serve": "Serve para quem busca uma rotina com mais energia, disposição e suporte nutricional.",
         "link": "https://revitamais.com.br/kits/"
     },
     "articulacoes_mobilidade": {
         "nome": "KIT – Articulações & Mobilidade",
         "preco": "R$149,90",
         "descricao": "Kit voltado para suporte às articulações, mobilidade e cuidado diário.",
+        "serve": "Serve para quem busca suporte para articulações, mobilidade e cuidado diário.",
         "link": "https://revitamais.com.br/kits/"
     },
     "saude_masculina": {
         "nome": "KIT – Saúde Masculina",
         "preco": "R$149,90",
         "descricao": "Kit pensado para complementar a rotina nutricional masculina.",
+        "serve": "Serve para complementar a rotina nutricional masculina.",
         "link": "https://revitamais.com.br/kits/"
     },
     "saude_feminina": {
         "nome": "KIT – Saúde Feminina",
         "preco": "R$219,99",
         "descricao": "Kit pensado para complementar a rotina nutricional feminina.",
+        "serve": "Serve para complementar a rotina nutricional feminina.",
         "link": "https://revitamais.com.br/kits/"
     },
     "foco_energia": {
         "nome": "KIT – Foco & Energia",
         "preco": "R$129,99",
         "descricao": "Kit para rotina, foco, energia e disposição.",
+        "serve": "Serve para quem busca suporte para foco, energia e disposição.",
         "link": "https://revitamais.com.br/kits/"
     },
     "beleza_completa": {
         "nome": "KIT – Beleza Completa",
         "preco": "R$169,99",
         "descricao": "Kit para rotina de beleza, pele, cabelo e unhas.",
+        "serve": "Serve para uma rotina de beleza mais completa, com foco em pele, cabelo e unhas.",
         "link": "https://revitamais.com.br/kits/"
     },
     "beleza_essencial": {
         "nome": "KIT – Beleza Essencial",
         "preco": "R$119,99",
         "descricao": "Kit essencial para cuidado diário com beleza.",
+        "serve": "Serve para quem quer começar uma rotina de beleza de forma prática.",
         "link": "https://revitamais.com.br/kits/"
     },
     "imunidade_energia": {
         "nome": "KIT – Imunidade & Energia",
         "preco": "R$149,99",
         "descricao": "Kit para suporte nutricional, imunidade e energia.",
+        "serve": "Serve para complementar a rotina com foco em imunidade, energia e suporte nutricional.",
         "link": "https://revitamais.com.br/kits/"
     }
 }
@@ -165,8 +185,10 @@ Regras:
 - Não prometa cura.
 - Não faça diagnóstico médico.
 - Não diga que produto trata doença.
-- Se perguntarem frete ou prazo, peça o CEP.
+- Se perguntarem frete, informe: {FRETE_GRATIS}.
 - Se pedirem preço, link, catálogo, loja ou compra, informe o valor cadastrado e o link direto quando houver.
+- Se for primeira compra, informe o cupom: {CUPOM_PRIMEIRA_COMPRA}.
+- Formas de pagamento: {FORMAS_PAGAMENTO}.
 - Se pedirem atendente, informe horário de atendimento e tempo médio de resposta.
 - Não ofereça Gummies infantil.
 - Não ofereça Colágeno em pó.
@@ -288,6 +310,86 @@ def pediu_preco_link_ou_compra(mensagem):
     return any(p in texto for p in palavras)
 
 
+def pediu_compra_fora_site(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    palavras = [
+        "não quero comprar pelo site", "nao quero comprar pelo site",
+        "não consigo comprar no site", "nao consigo comprar no site",
+        "comprar por aqui", "quero comprar por aqui",
+        "prefiro passar os dados", "posso passar os dados",
+        "fazer pedido por aqui", "fechar por aqui",
+        "não quero pelo site", "nao quero pelo site"
+    ]
+
+    return any(p in texto for p in palavras)
+
+
+def mensagem_compra_fora_site():
+    return f"""Claro! Podemos seguir por aqui. 💚
+
+Por favor, me envie:
+
+1️⃣ CPF
+2️⃣ Nome completo
+3️⃣ E-mail
+4️⃣ Produto ou kit desejado
+5️⃣ Forma de pagamento: boleto, Pix ou cartão em até 3x sem juros
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}"""
+
+
+def pediu_formas_pagamento(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    palavras = [
+        "forma de pagamento", "formas de pagamento", "pagamento",
+        "boleto", "pix", "cartão", "cartao", "parcelar",
+        "parcelamento", "3x", "juros"
+    ]
+
+    return any(p in texto for p in palavras)
+
+
+def mensagem_pagamento():
+    return f"""As formas de pagamento são:
+
+💳 Cartão em até 3x sem juros
+💚 Pix
+🧾 Boleto
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}"""
+
+
+def pediu_frete(mensagem):
+    texto = normalizar_texto(mensagem)
+    return any(p in texto for p in ["frete", "entrega", "prazo", "envio"])
+
+
+def mensagem_frete():
+    return f"""🚚 {FRETE_GRATIS}
+
+Se quiser comprar pelo site, acesse:
+{SITE_REVITA}
+
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}"""
+
+
+def pediu_pra_que_serve(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    palavras = [
+        "pra que serve", "para que serve", "serve pra que", "serve para que",
+        "benefício", "beneficio", "benefícios", "beneficios",
+        "me fala mais", "falar mais", "me explique", "explica",
+        "como funciona", "detalhes", "mais sobre"
+    ]
+
+    return any(p in texto for p in palavras)
+
+
 def pediu_produto_removido(mensagem):
     texto = normalizar_texto(mensagem)
 
@@ -329,6 +431,9 @@ Como posso te ajudar hoje?
 6️⃣ Ver catálogo / comprar
 7️⃣ Falar com atendente
 
+🚚 Frete grátis para todo o Brasil
+🎁 Primeira compra? Use o cupom: PRIMEIRACOMPRA
+
 💡 Digite MENU INICIAL para voltar a este menu quando quiser.
 
 É só responder com o número da opção. 💚"""
@@ -360,6 +465,9 @@ def lista_kits():
 
 ✨ {KITS["imunidade_energia"]["nome"]}
 💰 {KITS["imunidade_energia"]["preco"]}
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
 
 🔗 Ver todos os kits:
 https://revitamais.com.br/kits/
@@ -414,12 +522,20 @@ def resposta_kit_com_preco(kit):
 
 {kit["descricao"]}
 
+✨ Pra que serve:
+{kit["serve"]}
+
 💰 Valor: {kit["preco"]}
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+💳 Pagamento: {FORMAS_PAGAMENTO}
 
 🔗 Link direto:
 {kit["link"]}
 
-Quer que eu te ajude a escolher o melhor kit para o seu objetivo?"""
+Se preferir comprar por aqui, me envie:
+CPF, nome completo, e-mail, forma de pagamento e o produto/kit desejado."""
 
 
 def resposta_menu(mensagem):
@@ -439,6 +555,9 @@ def resposta_menu(mensagem):
 
 Também temos kits de beleza na opção 5.
 
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+
 Você procura algo mais para cabelo, pele ou unhas?"""
 
     if texto in ["2", "opção 2", "opcao 2"]:
@@ -446,9 +565,13 @@ Você procura algo mais para cabelo, pele ou unhas?"""
 
         return f"""Temos o {p["nome"]}. 💚
 
-Ele é uma opção para suporte às articulações, mobilidade e cuidado diário.
+✨ Pra que serve:
+{p["serve"]}
 
 💰 Valor: {p["preco"]}
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
 
 Você quer usar mais para mobilidade, articulações ou rotina preventiva?"""
 
@@ -457,9 +580,13 @@ Você quer usar mais para mobilidade, articulações ou rotina preventiva?"""
 
         return f"""Temos o {p["nome"]}. 💚
 
-Ele é muito procurado para complementar a rotina de bem-estar e suporte nutricional diário.
+✨ Pra que serve:
+{p["serve"]}
 
 💰 Valor: {p["preco"]}
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
 
 Você já usa ômega 3 ou está começando agora?"""
 
@@ -478,6 +605,9 @@ Você já usa ômega 3 ou está começando agora?"""
 ✨ {PRODUTOS["complexo_b"]["nome"]}
 💰 {PRODUTOS["complexo_b"]["preco"]}
 
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+
 Você procura para mulher, homem, disposição ou rotina geral?"""
 
     if texto in ["5", "opção 5", "opcao 5"]:
@@ -488,7 +618,12 @@ Você procura para mulher, homem, disposição ou rotina geral?"""
 
 {SITE_REVITA}
 
-Se quiser, também posso te ajudar a escolher o produto ideal."""
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+💳 Pagamento: {FORMAS_PAGAMENTO}
+
+Se preferir comprar por aqui, me envie:
+CPF, nome completo, e-mail, forma de pagamento e o produto/kit desejado."""
 
     if texto in ["7", "opção 7", "opcao 7"]:
         return mensagem_atendente()
@@ -548,12 +683,56 @@ def resposta_produto_com_preco(produto):
 
 {produto["descricao"]}
 
+✨ Pra que serve:
+{produto["serve"]}
+
 💰 Valor: {produto["preco"]}
+
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+💳 Pagamento: {FORMAS_PAGAMENTO}
 
 🔗 Link direto:
 {produto["link"]}
 
-Se quiser, também posso te ajudar a escolher a melhor opção para o seu objetivo."""
+Se preferir comprar por aqui, me envie:
+CPF, nome completo, e-mail, forma de pagamento e o produto desejado."""
+
+
+def resposta_pra_que_serve(produto=None, kit=None):
+    if produto:
+        return f"""{produto["nome"]} 💚
+
+✨ Pra que serve:
+{produto["serve"]}
+
+💰 Valor: {produto["preco"]}
+🚚 {FRETE_GRATIS}
+
+Quer que eu te envie o link direto para compra?"""
+
+    if kit:
+        return f"""{kit["nome"]} 💚
+
+✨ Pra que serve:
+{kit["serve"]}
+
+💰 Valor: {kit["preco"]}
+🚚 {FRETE_GRATIS}
+
+Quer que eu te envie o link direto para compra?"""
+
+    return """Claro! 💚
+
+Me diga qual produto ou kit você quer conhecer melhor que eu te explico para que serve.
+
+Você pode escolher pelo menu:
+
+1️⃣ Cabelo, pele e unhas
+2️⃣ Colágeno Tipo 2
+3️⃣ Ômega 3
+4️⃣ Multivitamínicos
+5️⃣ Kits promocionais"""
 
 
 def resposta_fixa(mensagem):
@@ -566,21 +745,29 @@ def resposta_fixa(mensagem):
     if menu:
         return menu
 
+    if pediu_compra_fora_site(mensagem):
+        return mensagem_compra_fora_site()
+
+    if pediu_formas_pagamento(mensagem):
+        return mensagem_pagamento()
+
+    if pediu_frete(mensagem):
+        return mensagem_frete()
+
     if cliente_pediu_atendente(mensagem):
         return mensagem_atendente()
 
     kit = detectar_kit(mensagem)
+    produto = detectar_produto(mensagem)
 
-    if kit and pediu_preco_link_ou_compra(mensagem):
-        return resposta_kit_com_preco(kit)
+    if pediu_pra_que_serve(mensagem):
+        return resposta_pra_que_serve(produto=produto, kit=kit)
 
     if kit:
         return resposta_kit_com_preco(kit)
 
     if pediu_kits(mensagem):
         return lista_kits()
-
-    produto = detectar_produto(mensagem)
 
     if pediu_preco_link_ou_compra(mensagem):
         if produto:
@@ -594,12 +781,12 @@ Você pode acessar nossa loja oficial aqui:
 
 Lá você encontra os produtos e kits disponíveis da Revita+. 💚
 
-Se quiser, me diga qual produto ou kit você procura que eu te envio o valor e o link direto."""
+🚚 {FRETE_GRATIS}
+🎁 Primeira compra? Use o cupom: {CUPOM_PRIMEIRA_COMPRA}
+💳 Pagamento: {FORMAS_PAGAMENTO}
 
-    if any(p in texto for p in ["frete", "entrega", "prazo"]):
-        return """Claro! 🚚
-
-Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
+Se preferir comprar por aqui, me envie:
+CPF, nome completo, e-mail, forma de pagamento e o produto/kit desejado."""
 
     return None
 
@@ -622,6 +809,7 @@ def gerar_resposta_revita(mensagem):
 Produto identificado:
 Nome: {produto.get("nome", "")}
 Descrição: {produto.get("descricao", "")}
+Pra que serve: {produto.get("serve", "")}
 Preço: {produto.get("preco", "")}
 Link direto: {produto.get("link", SITE_REVITA)}
 """
@@ -631,6 +819,7 @@ Link direto: {produto.get("link", SITE_REVITA)}
 Kit identificado:
 Nome: {kit.get("nome", "")}
 Descrição: {kit.get("descricao", "")}
+Pra que serve: {kit.get("serve", "")}
 Preço: {kit.get("preco", "")}
 Link direto: {kit.get("link", SITE_REVITA)}
 """
@@ -645,6 +834,11 @@ Cliente: {mensagem}
 Responda primeiro a dúvida do cliente.
 Se houver produto ou kit identificado, pode informar o valor.
 Só envie link direto se o cliente pedir preço, compra, link, catálogo ou loja.
+Sempre que falar de compra, mencione:
+- {FRETE_GRATIS}
+- Cupom de primeira compra: {CUPOM_PRIMEIRA_COMPRA}
+- Pagamento: {FORMAS_PAGAMENTO}
+
 Finalize com uma pergunta simples para continuar o atendimento.
 
 Atendente Revita+:
