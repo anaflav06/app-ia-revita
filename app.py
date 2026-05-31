@@ -3,8 +3,9 @@ import html
 import os
 import requests
 import google.generativeai as genai
-from produtos import PRODUTOS
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+import threading
 
 app = Flask(__name__)
 
@@ -22,13 +23,89 @@ EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
 EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "Revita")
 
 TEMPO_PAUSA_MINUTOS = 10
+TEMPO_FOLLOWUP_MINUTOS = 60
+
 CLIENTES_EM_PAUSA = {}
+ULTIMA_INTERACAO = {}
+
+TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 COMANDOS_MENU = [
     "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
     "menu", "menu inicial", "voltar menu", "voltar ao menu",
-    "começar", "comecar", "iniciar", "reiniciar"
+    "começar", "comecar", "iniciar", "reiniciar",
+    "tenho interesse",
+    "queria mais informações",
+    "quero mais informações",
+    "mais informações",
+    "mais informacoes",
+    "informações",
+    "informacoes"
 ]
+
+GATILHOS_MENU = [
+    "tenho interesse",
+    "queria mais informações",
+    "quero mais informações",
+    "mais informações",
+    "mais informacoes",
+    "informações",
+    "informacoes",
+    "interesse",
+    "gostaria de saber",
+    "quero saber mais"
+]
+
+PRODUTOS = {
+    "omega": {
+        "nome": "Ômega 3 Concentrado - 60 Cápsulas",
+        "preco": "R$109,90",
+        "descricao": "Suporte nutricional para bem-estar geral e rotina saudável.",
+        "link": "https://revitamais.com.br/produtos/omega-3-concentrado-60-capsulas/"
+    },
+    "revita_hair": {
+        "nome": "Revita Hair Gummies",
+        "preco": "R$89,90",
+        "descricao": "Gummies para cuidado com cabelo, pele e unhas, ajudando na rotina de beleza.",
+        "link": "https://revitamais.com.br/produtos/hair-30-unidades-gummys/"
+    },
+    "complexo_b": {
+        "nome": "Complexo B Gummies",
+        "preco": "R$89,90",
+        "descricao": "Vitaminas do complexo B em gummies para rotina, energia e disposição.",
+        "link": "https://revitamais.com.br/produtos/complexo-b-30-unidades-gummys/"
+    },
+    "multivitaminico": {
+        "nome": "Multivitamínico A-Z - 30 Cápsulas",
+        "preco": "R$59,90",
+        "descricao": "Vitaminas e minerais para complementar a rotina diária.",
+        "link": "https://revitamais.com.br/produtos/multivitaminico-a-z-30-capsulas/"
+    },
+    "multivitaminico_mulher": {
+        "nome": "Multivitamínico Mulher - 30 Cápsulas",
+        "preco": "R$60,75",
+        "descricao": "Suporte nutricional para a rotina feminina.",
+        "link": "https://revitamais.com.br/produtos/multivitaminico-mulher-30-capsulas/"
+    },
+    "multivitaminico_homem": {
+        "nome": "Multivitamínico Homem - 30 Cápsulas",
+        "preco": "R$60,75",
+        "descricao": "Suporte nutricional para a rotina masculina.",
+        "link": "https://revitamais.com.br/produtos/multivitaminico-homem-30-capsulas/"
+    },
+    "colageno_tipo2": {
+        "nome": "Colágeno Tipo 2 - 30 Cápsulas",
+        "preco": "R$59,90",
+        "descricao": "Suporte para articulações, mobilidade e cuidado diário.",
+        "link": "https://revitamais.com.br/produtos/colageno-tipo-2-30-capsulas/"
+    },
+    "skin": {
+        "nome": "Skin + Ácido Hialurônico + Vitamina C",
+        "preco": "R$59,90",
+        "descricao": "Suporte para pele, hidratação, firmeza e rotina de beleza.",
+        "link": SITE_REVITA
+    }
+}
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -59,22 +136,22 @@ Regras importantes:
 - Não prometa cura.
 - Não faça diagnóstico médico.
 - Não diga que produto trata doença.
-- Se perguntarem preço, link, catálogo, loja ou compra, envie o site oficial.
 - Se perguntarem frete ou prazo, peça o CEP.
 - Se a dúvida for sobre produto, explique de forma simples e pergunte o objetivo do cliente.
-- Só envie o site se o cliente pedir compra, preço, link, catálogo ou loja.
-- Se o cliente pedir atendente, pessoa, humano ou consultora, responda que em breve uma consultora irá atender.
+- Se pedirem preço, link, catálogo, loja ou compra, informe o valor cadastrado e o link direto do produto quando houver.
+- Se o cliente pedir atendente, pessoa, humano ou consultora, informe o horário de atendimento e tempo médio de resposta.
+- Não ofereça Gummies infantil.
+- Não ofereça Colágeno em pó.
 
-Produtos Revita+:
-- Colágeno Verisol + Ácido Hialurônico: firmeza, elasticidade, hidratação e beleza da pele.
-- Ômega 3: bem-estar geral e suporte nutricional.
-- Gummies Cabelo, Pele e Unhas: cuidado prático diário com beleza.
-- Revita Hair: cuidado capilar, fortalecimento dos fios e rotina para cabelos.
-- Multivitamínico: vitaminas e minerais para o dia a dia.
-- Multivitamínico Mulher: suporte nutricional para rotina feminina.
-- Multivitamínico Homem: suporte nutricional para rotina masculina.
-- Complexo B Gummies: vitaminas do complexo B para rotina, energia e disposição.
-- Kids Gummies: suplemento infantil em formato gummy.
+Produtos Revita+ disponíveis:
+- Ômega 3 Concentrado: R$109,90.
+- Revita Hair Gummies: R$89,90.
+- Complexo B Gummies: R$89,90.
+- Multivitamínico A-Z: R$59,90.
+- Multivitamínico Mulher: R$60,75.
+- Multivitamínico Homem: R$60,75.
+- Colágeno Tipo 2: R$59,90.
+- Skin + Ácido Hialurônico + Vitamina C: R$59,90.
 """
 
 
@@ -83,7 +160,37 @@ def normalizar_texto(texto):
 
 
 def pediu_menu(mensagem):
-    return normalizar_texto(mensagem) in COMANDOS_MENU
+    texto = normalizar_texto(mensagem)
+
+    if texto in COMANDOS_MENU:
+        return True
+
+    return any(gatilho in texto for gatilho in GATILHOS_MENU)
+
+
+def horario_atendimento_aberto():
+    agora = datetime.now(TZ_BRASIL)
+    dia_semana = agora.weekday()
+    hora = agora.hour
+
+    return dia_semana <= 4 and 8 <= hora < 18
+
+
+def mensagem_atendente():
+    if horario_atendimento_aberto():
+        return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚
+
+⏰ Tempo médio de resposta:
+até 30 minutos."""
+
+    return """Claro! 💚
+
+Nosso atendimento funciona de segunda a sexta, das 08h às 18h.
+
+Recebemos sua mensagem e uma consultora retornará no próximo horário útil.
+
+⏰ Tempo médio de resposta:
+até 30 minutos."""
 
 
 def pausar_cliente(telefone):
@@ -116,6 +223,36 @@ def cliente_esta_em_pausa(telefone):
     return False
 
 
+def atualizar_ultima_interacao(telefone):
+    if telefone:
+        ULTIMA_INTERACAO[telefone] = datetime.now()
+
+
+def agendar_followup(telefone):
+    if not telefone:
+        return
+
+    momento_base = ULTIMA_INTERACAO.get(telefone, datetime.now())
+
+    def enviar_followup():
+        ultima = ULTIMA_INTERACAO.get(telefone)
+
+        if not ultima:
+            return
+
+        passou_tempo = datetime.now() - ultima >= timedelta(minutes=TEMPO_FOLLOWUP_MINUTOS)
+
+        if passou_tempo and not cliente_esta_em_pausa(telefone):
+            texto = """Oi! Você ainda está aí? 💚
+
+Posso te ajudar com alguma dúvida sobre os produtos da Revita+?"""
+            enviar_whatsapp(telefone, texto)
+
+    timer = threading.Timer(TEMPO_FOLLOWUP_MINUTOS * 60, enviar_followup)
+    timer.daemon = True
+    timer.start()
+
+
 def cliente_pediu_atendente(mensagem):
     texto = normalizar_texto(mensagem)
 
@@ -140,18 +277,56 @@ def cliente_pediu_atendente(mensagem):
     return any(p in texto for p in palavras)
 
 
+def pediu_preco_link_ou_compra(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    palavras = [
+        "preço", "preco", "valor", "quanto custa", "quanto é", "quanto e",
+        "link", "comprar", "compra", "quero comprar", "pedido", "catálogo",
+        "catalogo", "loja", "site"
+    ]
+
+    return any(p in texto for p in palavras)
+
+
+def pediu_produto_removido(mensagem):
+    texto = normalizar_texto(mensagem)
+
+    if any(p in texto for p in ["gummies infantil", "gummy infantil", "kids", "criança", "crianca", "infantil"]):
+        return True
+
+    if any(p in texto for p in ["colágeno em pó", "colageno em po", "colageno pó", "colágeno pó", "colageno 108g"]):
+        return True
+
+    return False
+
+
+def mensagem_produto_removido():
+    return """No momento não estamos trabalhando com esse produto no atendimento automático. 💚
+
+Posso te apresentar as opções disponíveis da Revita+:
+
+1️⃣ Cabelo, pele e unhas
+2️⃣ Colágeno Tipo 2
+3️⃣ Ômega 3
+4️⃣ Multivitamínicos
+5️⃣ Ver catálogo / comprar
+6️⃣ Falar com atendente
+
+💡 Digite MENU INICIAL para voltar ao menu principal."""
+
+
 def menu_principal():
     return """Olá! 👋 Sou a assistente virtual da Revita+.
 
 Como posso te ajudar hoje?
 
 1️⃣ Cabelo, pele e unhas
-2️⃣ Colágeno
+2️⃣ Colágeno Tipo 2
 3️⃣ Ômega 3
 4️⃣ Multivitamínicos
-5️⃣ Gummies infantil
-6️⃣ Ver catálogo / comprar
-7️⃣ Falar com atendente
+5️⃣ Ver catálogo / comprar
+6️⃣ Falar com atendente
 
 💡 Digite MENU INICIAL para voltar a este menu quando quiser.
 
@@ -161,57 +336,71 @@ Como posso te ajudar hoje?
 def resposta_menu(mensagem):
     texto = normalizar_texto(mensagem)
 
-    if texto in COMANDOS_MENU:
+    if pediu_menu(mensagem):
         return menu_principal()
 
     if texto in ["1", "opção 1", "opcao 1"]:
-        return """Temos opções para cabelo, pele e unhas. 💚
+        p1 = PRODUTOS["revita_hair"]
+        p2 = PRODUTOS["skin"]
 
-✨ Revita Hair: indicado para quem busca cuidado com os fios e rotina capilar.
-✨ Gummies Cabelo, Pele e Unhas: opção prática em gummy para rotina de beleza.
+        return f"""Temos opções para cabelo, pele e unhas. 💚
+
+✨ {p1["nome"]}
+💰 Valor: {p1["preco"]}
+
+✨ {p2["nome"]}
+💰 Valor: {p2["preco"]}
 
 Você procura algo mais para cabelo, pele ou unhas?"""
 
     if texto in ["2", "opção 2", "opcao 2"]:
-        return """Temos o Colágeno Verisol + Ácido Hialurônico Revita+. 💚
+        p = PRODUTOS["colageno_tipo2"]
 
-Ele é uma opção para quem busca cuidado com a pele, firmeza, elasticidade e hidratação.
+        return f"""Temos o {p["nome"]}. 💚
 
-Você quer usar mais para firmeza da pele, hidratação ou prevenção?"""
+Ele é uma opção para quem busca suporte para articulações, mobilidade e cuidado diário.
+
+💰 Valor: {p["preco"]}
+
+Você quer usar mais para mobilidade, articulações ou rotina preventiva?"""
 
     if texto in ["3", "opção 3", "opcao 3"]:
-        return """Temos o Ômega 3 Revita+. 💚
+        p = PRODUTOS["omega"]
+
+        return f"""Temos o {p["nome"]}. 💚
 
 Ele é muito procurado para complementar a rotina de bem-estar e suporte nutricional diário.
+
+💰 Valor: {p["preco"]}
 
 Você já usa ômega 3 ou está começando agora?"""
 
     if texto in ["4", "opção 4", "opcao 4"]:
-        return """Temos opções de multivitamínicos Revita+. 💚
+        return f"""Temos opções de multivitamínicos Revita+. 💚
 
-✨ Multivitamínico tradicional
-✨ Multivitamínico Mulher
-✨ Multivitamínico Homem
-✨ Complexo B Gummies
+✨ {PRODUTOS["multivitaminico"]["nome"]}
+💰 {PRODUTOS["multivitaminico"]["preco"]}
+
+✨ {PRODUTOS["multivitaminico_mulher"]["nome"]}
+💰 {PRODUTOS["multivitaminico_mulher"]["preco"]}
+
+✨ {PRODUTOS["multivitaminico_homem"]["nome"]}
+💰 {PRODUTOS["multivitaminico_homem"]["preco"]}
+
+✨ {PRODUTOS["complexo_b"]["nome"]}
+💰 {PRODUTOS["complexo_b"]["preco"]}
 
 Você procura para mulher, homem, disposição ou rotina geral?"""
 
     if texto in ["5", "opção 5", "opcao 5"]:
-        return """Temos o Kids Gummies Revita+. 💚
-
-É uma opção infantil em formato gummy para complementar a rotina das crianças.
-
-Qual a idade da criança?"""
-
-    if texto in ["6", "opção 6", "opcao 6"]:
         return f"""Claro! Você pode ver todos os produtos na loja oficial da Revita+:
 
 {SITE_REVITA}
 
 Se quiser, também posso te ajudar a escolher o produto ideal."""
 
-    if texto in ["7", "opção 7", "opcao 7"]:
-        return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚"""
+    if texto in ["6", "opção 6", "opcao 6", "7", "opção 7", "opcao 7"]:
+        return mensagem_atendente()
 
     return None
 
@@ -219,12 +408,19 @@ Se quiser, também posso te ajudar a escolher o produto ideal."""
 def detectar_produto(mensagem):
     texto = normalizar_texto(mensagem)
 
+    if any(p in texto for p in ["colageno em po", "colágeno em pó", "colageno 108g", "colágeno 108g"]):
+        return None
+
     if any(p in texto for p in [
-        "colageno", "colágeno", "verisol", "acido hialuronico",
-        "ácido hialurônico", "hialuronico", "hialurônico", "pele",
-        "firmeza", "elasticidade", "hidratação", "hidratacao"
+        "colageno tipo 2", "colágeno tipo 2", "articulação", "articulacao",
+        "articulações", "articulacoes", "mobilidade", "ossos", "joelho"
     ]):
-        return PRODUTOS.get("colageno")
+        return PRODUTOS.get("colageno_tipo2")
+
+    if any(p in texto for p in [
+        "colageno", "colágeno"
+    ]):
+        return PRODUTOS.get("colageno_tipo2")
 
     if any(p in texto for p in [
         "omega", "ômega", "omega 3", "ômega 3", "oleo de peixe",
@@ -234,15 +430,17 @@ def detectar_produto(mensagem):
 
     if any(p in texto for p in [
         "revita hair", "hair", "queda", "cabelo fraco",
-        "crescimento capilar", "fortalecer cabelo", "fio", "fios"
+        "crescimento capilar", "fortalecer cabelo", "fio", "fios",
+        "cabelo", "unha", "unhas"
     ]):
         return PRODUTOS.get("revita_hair")
 
     if any(p in texto for p in [
-        "gummies cabelo", "cabelo pele unhas", "cabelo pele e unhas",
-        "unhas", "unha", "gummy beleza", "gummies beleza"
+        "skin", "pele", "acido hialuronico", "ácido hialurônico",
+        "hialuronico", "hialurônico", "firmeza", "elasticidade",
+        "hidratação", "hidratacao", "vitamina c"
     ]):
-        return PRODUTOS.get("gummies")
+        return PRODUTOS.get("skin")
 
     if any(p in texto for p in [
         "mulher", "feminino", "multivitaminico mulher",
@@ -263,12 +461,6 @@ def detectar_produto(mensagem):
         return PRODUTOS.get("complexo_b")
 
     if any(p in texto for p in [
-        "kids", "criança", "crianca", "infantil", "gummy infantil",
-        "gummies infantil", "vitamina infantil", "crianças", "criancas"
-    ]):
-        return PRODUTOS.get("kids")
-
-    if any(p in texto for p in [
         "multi", "vitamina", "vitaminas", "multivitaminico",
         "multivitamínico", "minerais"
     ]):
@@ -277,14 +469,38 @@ def detectar_produto(mensagem):
     return None
 
 
+def resposta_produto_com_preco(produto):
+    return f"""{produto["nome"]} 💚
+
+{produto["descricao"]}
+
+💰 Valor: {produto["preco"]}
+
+🔗 Link direto:
+{produto["link"]}
+
+Se quiser, também posso te ajudar a escolher a melhor opção para o seu objetivo."""
+
+
 def resposta_fixa(mensagem):
     texto = normalizar_texto(mensagem)
+
+    if pediu_produto_removido(mensagem):
+        return mensagem_produto_removido()
 
     menu = resposta_menu(mensagem)
     if menu:
         return menu
 
-    if any(p in texto for p in ["site", "loja", "catálogo", "catalogo", "link", "comprar", "compra", "quero comprar", "pedido"]):
+    if cliente_pediu_atendente(mensagem):
+        return mensagem_atendente()
+
+    produto = detectar_produto(mensagem)
+
+    if pediu_preco_link_ou_compra(mensagem):
+        if produto:
+            return resposta_produto_com_preco(produto)
+
         return f"""Claro! 👋
 
 Você pode acessar nossa loja oficial aqui:
@@ -293,24 +509,12 @@ Você pode acessar nossa loja oficial aqui:
 
 Lá você encontra os produtos disponíveis da Revita+. 💚
 
-Se quiser, me diga o que você procura que eu te ajudo a escolher."""
+Se quiser, me diga qual produto você procura que eu te envio o valor e o link direto."""
 
     if any(p in texto for p in ["frete", "entrega", "prazo"]):
         return """Claro! 🚚
 
 Para consultar frete e prazo de entrega, me envie seu CEP, por favor."""
-
-    if any(p in texto for p in ["preço", "preco", "valor", "quanto custa", "quanto é", "quanto e"]):
-        return f"""Os valores podem variar conforme ofertas e disponibilidade. 💚
-
-Você pode consultar os preços atualizados na loja oficial:
-
-{SITE_REVITA}
-
-Se quiser, me diga qual produto você quer que eu te ajudo."""
-
-    if cliente_pediu_atendente(mensagem):
-        return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚"""
 
     return None
 
@@ -331,7 +535,8 @@ def gerar_resposta_revita(mensagem):
 Produto identificado:
 Nome: {produto.get("nome", "")}
 Descrição: {produto.get("descricao", "")}
-Link oficial, somente se o cliente pedir compra/preço/link: {produto.get("link", SITE_REVITA)}
+Preço: {produto.get("preco", "")}
+Link direto: {produto.get("link", SITE_REVITA)}
 """
 
     prompt_completo = f"""
@@ -342,7 +547,8 @@ Link oficial, somente se o cliente pedir compra/preço/link: {produto.get("link"
 Cliente: {mensagem}
 
 Responda primeiro a dúvida do cliente.
-Não envie link de compra, site ou catálogo, a menos que o cliente tenha pedido preço, compra, link, catálogo ou loja.
+Se houver produto identificado, pode informar o valor.
+Só envie link direto se o cliente pedir preço, compra, link, catálogo ou loja.
 Finalize com uma pergunta simples para continuar o atendimento.
 
 Atendente Revita+:
@@ -435,7 +641,7 @@ def home():
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px;">
                 <a href="/rapida?msg=menu" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Menu</a>
-                <a href="/rapida?msg=Quero saber sobre colágeno" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Colágeno</a>
+                <a href="/rapida?msg=Quero saber sobre colágeno tipo 2" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Colágeno</a>
                 <a href="/rapida?msg=Quero saber sobre ômega 3" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Ômega 3</a>
                 <a href="/rapida?msg=Quero algo para cabelo" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Cabelo</a>
             </div>
@@ -507,10 +713,13 @@ def webhook():
     if not telefone or not mensagem:
         return {"status": "ignorado", "motivo": "sem mensagem válida"}, 200
 
+    atualizar_ultima_interacao(telefone)
+
     if pediu_menu(mensagem):
         remover_pausa_cliente(telefone)
         resposta = menu_principal()
         enviado = enviar_whatsapp(telefone, resposta)
+        agendar_followup(telefone)
 
         return {
             "status": "ok",
@@ -534,6 +743,7 @@ def webhook():
         pausar_cliente(telefone)
 
     enviado = enviar_whatsapp(telefone, resposta)
+    agendar_followup(telefone)
 
     return {
         "status": "ok",
