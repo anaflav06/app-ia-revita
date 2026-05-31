@@ -153,6 +153,8 @@ Como posso te ajudar hoje?
 6️⃣ Ver catálogo / comprar
 7️⃣ Falar com atendente
 
+💡 Digite MENU INICIAL para voltar a este menu quando quiser.
+
 É só responder com o número da opção. 💚"""
 
 
