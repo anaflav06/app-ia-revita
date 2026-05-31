@@ -24,6 +24,12 @@ EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "Revita")
 TEMPO_PAUSA_MINUTOS = 10
 CLIENTES_EM_PAUSA = {}
 
+COMANDOS_MENU = [
+    "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
+    "menu", "menu inicial", "voltar menu", "voltar ao menu",
+    "começar", "comecar", "iniciar", "reiniciar"
+]
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel("gemini-2.5-flash")
@@ -72,10 +78,24 @@ Produtos Revita+:
 """
 
 
+def normalizar_texto(texto):
+    return (texto or "").lower().strip()
+
+
+def pediu_menu(mensagem):
+    return normalizar_texto(mensagem) in COMANDOS_MENU
+
+
 def pausar_cliente(telefone):
     if telefone:
         CLIENTES_EM_PAUSA[telefone] = datetime.now() + timedelta(minutes=TEMPO_PAUSA_MINUTOS)
         print(f"Cliente {telefone} pausado até {CLIENTES_EM_PAUSA[telefone]}")
+
+
+def remover_pausa_cliente(telefone):
+    if telefone in CLIENTES_EM_PAUSA:
+        CLIENTES_EM_PAUSA.pop(telefone, None)
+        print(f"Pausa removida para o cliente {telefone}")
 
 
 def cliente_esta_em_pausa(telefone):
@@ -97,7 +117,7 @@ def cliente_esta_em_pausa(telefone):
 
 
 def cliente_pediu_atendente(mensagem):
-    texto = mensagem.lower().strip()
+    texto = normalizar_texto(mensagem)
 
     if texto in ["7", "opção 7", "opcao 7"]:
         return True
@@ -137,9 +157,9 @@ Como posso te ajudar hoje?
 
 
 def resposta_menu(mensagem):
-    texto = mensagem.lower().strip()
+    texto = normalizar_texto(mensagem)
 
-    if texto in ["oi", "olá", "ola", "bom dia", "boa tarde", "boa noite", "menu", "começar", "comecar", "iniciar"]:
+    if texto in COMANDOS_MENU:
         return menu_principal()
 
     if texto in ["1", "opção 1", "opcao 1"]:
@@ -195,7 +215,7 @@ Se quiser, também posso te ajudar a escolher o produto ideal."""
 
 
 def detectar_produto(mensagem):
-    texto = mensagem.lower()
+    texto = normalizar_texto(mensagem)
 
     if any(p in texto for p in [
         "colageno", "colágeno", "verisol", "acido hialuronico",
@@ -256,7 +276,7 @@ def detectar_produto(mensagem):
 
 
 def resposta_fixa(mensagem):
-    texto = mensagem.lower()
+    texto = normalizar_texto(mensagem)
 
     menu = resposta_menu(mensagem)
     if menu:
@@ -484,6 +504,20 @@ def webhook():
 
     if not telefone or not mensagem:
         return {"status": "ignorado", "motivo": "sem mensagem válida"}, 200
+
+    if pediu_menu(mensagem):
+        remover_pausa_cliente(telefone)
+        resposta = menu_principal()
+        enviado = enviar_whatsapp(telefone, resposta)
+
+        return {
+            "status": "ok",
+            "telefone": telefone,
+            "mensagem": mensagem,
+            "resposta": resposta,
+            "enviado": enviado,
+            "motivo": "menu solicitado"
+        }, 200
 
     if cliente_esta_em_pausa(telefone):
         return {
