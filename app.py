@@ -4,6 +4,7 @@ import os
 import requests
 import google.generativeai as genai
 from produtos import PRODUTOS
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -19,6 +20,9 @@ EVOLUTION_API_URL = os.getenv(
 
 EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
 EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "Revita")
+
+TEMPO_PAUSA_MINUTOS = 10
+CLIENTES_EM_PAUSA = {}
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -66,6 +70,54 @@ Produtos Revita+:
 - Complexo B Gummies: vitaminas do complexo B para rotina, energia e disposição.
 - Kids Gummies: suplemento infantil em formato gummy.
 """
+
+
+def pausar_cliente(telefone):
+    if telefone:
+        CLIENTES_EM_PAUSA[telefone] = datetime.now() + timedelta(minutes=TEMPO_PAUSA_MINUTOS)
+        print(f"Cliente {telefone} pausado até {CLIENTES_EM_PAUSA[telefone]}")
+
+
+def cliente_esta_em_pausa(telefone):
+    if not telefone:
+        return False
+
+    pausa_ate = CLIENTES_EM_PAUSA.get(telefone)
+
+    if not pausa_ate:
+        return False
+
+    if datetime.now() < pausa_ate:
+        print(f"Cliente {telefone} ainda está em pausa até {pausa_ate}")
+        return True
+
+    CLIENTES_EM_PAUSA.pop(telefone, None)
+    print(f"Pausa do cliente {telefone} finalizada.")
+    return False
+
+
+def cliente_pediu_atendente(mensagem):
+    texto = mensagem.lower().strip()
+
+    if texto in ["7", "opção 7", "opcao 7"]:
+        return True
+
+    palavras = [
+        "atendente",
+        "humano",
+        "pessoa",
+        "consultora",
+        "consultor",
+        "falar com alguém",
+        "falar com alguem",
+        "quero atendimento",
+        "me chama",
+        "me liga",
+        "vendedora",
+        "vendedor"
+    ]
+
+    return any(p in texto for p in palavras)
 
 
 def menu_principal():
@@ -235,7 +287,7 @@ Você pode consultar os preços atualizados na loja oficial:
 
 Se quiser, me diga qual produto você quer que eu te ajudo."""
 
-    if any(p in texto for p in ["atendente", "humano", "pessoa", "consultora", "falar com alguém", "falar com alguem"]):
+    if cliente_pediu_atendente(mensagem):
         return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚"""
 
     return None
@@ -433,7 +485,18 @@ def webhook():
     if not telefone or not mensagem:
         return {"status": "ignorado", "motivo": "sem mensagem válida"}, 200
 
+    if cliente_esta_em_pausa(telefone):
+        return {
+            "status": "pausado",
+            "telefone": telefone,
+            "motivo": "cliente aguardando consultora"
+        }, 200
+
     resposta = gerar_resposta_revita(mensagem)
+
+    if cliente_pediu_atendente(mensagem):
+        pausar_cliente(telefone)
+
     enviado = enviar_whatsapp(telefone, resposta)
 
     return {
