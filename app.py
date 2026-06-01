@@ -791,21 +791,40 @@ CPF, nome completo, e-mail, forma de pagamento e o produto/kit desejado."""
     return None
 
 
+def resposta_seguranca():
+    return """Claro, posso te ajudar. 💚
+
+Não consegui entender 100% sua mensagem, mas posso te orientar por aqui.
+
+Digite uma opção:
+
+1️⃣ Cabelo, pele e unhas
+2️⃣ Colágeno Tipo 2
+3️⃣ Ômega 3
+4️⃣ Multivitamínicos
+5️⃣ Kits promocionais
+6️⃣ Ver catálogo / comprar
+7️⃣ Falar com atendente
+
+Ou digite MENU INICIAL para voltar ao menu."""
+
+
 def gerar_resposta_revita(mensagem):
-    if not model:
-        return "A IA ainda não está configurada. Verifique a variável GOOGLE_API_KEY no Render."
+    try:
+        if not model:
+            return resposta_seguranca()
 
-    fixa = resposta_fixa(mensagem)
-    if fixa:
-        return fixa
+        fixa = resposta_fixa(mensagem)
+        if fixa:
+            return fixa
 
-    produto = detectar_produto(mensagem)
-    kit = detectar_kit(mensagem)
+        produto = detectar_produto(mensagem)
+        kit = detectar_kit(mensagem)
 
-    contexto = ""
+        contexto = ""
 
-    if produto:
-        contexto += f"""
+        if produto:
+            contexto += f"""
 Produto identificado:
 Nome: {produto.get("nome", "")}
 Descrição: {produto.get("descricao", "")}
@@ -814,8 +833,8 @@ Preço: {produto.get("preco", "")}
 Link direto: {produto.get("link", SITE_REVITA)}
 """
 
-    if kit:
-        contexto += f"""
+        if kit:
+            contexto += f"""
 Kit identificado:
 Nome: {kit.get("nome", "")}
 Descrição: {kit.get("descricao", "")}
@@ -824,7 +843,7 @@ Preço: {kit.get("preco", "")}
 Link direto: {kit.get("link", SITE_REVITA)}
 """
 
-    prompt_completo = f"""
+        prompt_completo = f"""
 {PROMPT_REVITA}
 
 {contexto}
@@ -839,17 +858,24 @@ Sempre que falar de compra, mencione:
 - Cupom de primeira compra: {CUPOM_PRIMEIRA_COMPRA}
 - Pagamento: {FORMAS_PAGAMENTO}
 
+Se não entender a pergunta, responda de forma útil e ofereça o MENU INICIAL.
+
 Finalize com uma pergunta simples para continuar o atendimento.
 
 Atendente Revita+:
 """
 
-    resposta = model.generate_content(prompt_completo)
+        resposta = model.generate_content(prompt_completo)
 
-    if resposta and resposta.text:
-        return resposta.text.strip()
+        if resposta and getattr(resposta, "text", None) and resposta.text.strip():
+            return resposta.text.strip()
 
-    return "Desculpe, não consegui responder agora. Pode repetir a pergunta? 😊"
+        return resposta_seguranca()
+
+    except Exception as e:
+        print("ERRO DENTRO DA IA:", str(e))
+        return resposta_seguranca()
+
 
 
 def extrair_mensagem_e_numero(data):
@@ -1027,7 +1053,11 @@ def webhook():
             "motivo": "cliente aguardando consultora"
         }, 200
 
-    resposta = gerar_resposta_revita(mensagem)
+    try:
+        resposta = gerar_resposta_revita(mensagem)
+    except Exception as e:
+        print("ERRO AO GERAR RESPOSTA:", str(e))
+        resposta = resposta_seguranca()
 
     if cliente_pediu_atendente(mensagem):
         pausar_cliente(telefone)
