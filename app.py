@@ -213,6 +213,37 @@ def horario_atendimento_aberto():
     return agora.weekday() <= 4 and 8 <= agora.hour < 18
 
 
+def ia_deve_responder():
+    agora = datetime.now(TZ_BRASIL)
+    hoje = agora.strftime("%Y-%m-%d")
+
+    feriados = [
+        "2026-01-01",
+        "2026-02-16",
+        "2026-02-17",
+        "2026-04-03",
+        "2026-04-21",
+        "2026-05-01",
+        "2026-06-04",
+        "2026-09-07",
+        "2026-10-12",
+        "2026-11-02",
+        "2026-11-15",
+        "2026-12-25",
+    ]
+
+    if hoje in feriados:
+        return True
+
+    if agora.weekday() >= 5:
+        return True
+
+    if 8 <= agora.hour < 18:
+        return False
+
+    return True
+
+
 def mensagem_atendente():
     if horario_atendimento_aberto():
         return """Claro! Em breve uma consultora da Revita+ irá te atender. 💚
@@ -1028,6 +1059,12 @@ def webhook():
 
     if not telefone or not mensagem:
         return {"status": "ignorado", "motivo": "sem mensagem válida"}, 200
+
+    if not ia_deve_responder():
+        return {
+            "status": "ignorado",
+            "motivo": "horario comercial com atendimento humano ativo"
+        }, 200
 
     atualizar_ultima_interacao(telefone)
 
