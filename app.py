@@ -918,6 +918,10 @@ def extrair_mensagem_e_numero(data):
         key = dados.get("key", {})
         remote_jid = key.get("remoteJid", "")
 
+        if remote_jid.endswith("@g.us"):
+            print("Mensagem de grupo ignorada:", remote_jid)
+            return None, None
+
         if key.get("fromMe") is True:
             return None, None
 
