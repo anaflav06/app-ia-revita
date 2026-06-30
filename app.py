@@ -25,21 +25,28 @@ ULTIMA_INTERACAO = {}
 TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 PROMOCAO_ATUAL = "50% OFF já aplicado no valor final, sem necessidade de cupom"
+PROMOCAO_RELAMPAGO = "Promoção-relâmpago exclusiva do WhatsApp: na compra de 2 Ômega 3, ganhe 1 Multivitamínico A-Z"
 FORMAS_PAGAMENTO = "boleto, Pix ou cartão em até 3x sem juros"
 FRETE_GRATIS = "Frete grátis para todo o Brasil"
 
 COMANDOS_MENU = [
-    "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
     "menu", "menu inicial", "voltar menu", "voltar ao menu",
-    "começar", "comecar", "iniciar", "reiniciar",
-    "tenho interesse", "queria mais informações", "quero mais informações",
-    "mais informações", "mais informacoes", "informações", "informacoes"
+    "opções", "opcoes", "ver opções", "ver opcoes"
 ]
 
-GATILHOS_MENU = [
+COMANDOS_PROMOCAO_INICIAL = [
+    "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
+    "começar", "comecar", "iniciar", "reiniciar",
     "tenho interesse", "queria mais informações", "quero mais informações",
     "mais informações", "mais informacoes", "informações", "informacoes",
     "interesse", "gostaria de saber", "quero saber mais"
+]
+
+GATILHOS_PROMOCAO_INICIAL = [
+    "tenho interesse", "queria mais informações", "quero mais informações",
+    "mais informações", "mais informacoes", "informações", "informacoes",
+    "interesse", "gostaria de saber", "quero saber mais",
+    "promo", "promoção", "promocao", "promoção relâmpago", "promocao relampago"
 ]
 
 PRODUTOS = {
@@ -125,7 +132,8 @@ Regras obrigatórias:
 - Não prometa cura.
 - Não faça diagnóstico médico.
 - Não diga que produto trata doença.
-- Não ofereça, não liste e não indique kits.
+- Não ofereça, não liste e não indique kits, combos ou pacotes fora da promoção-relâmpago oficial.
+- Pode falar da promoção-relâmpago oficial quando o cliente chegar pelo WhatsApp ou demonstrar interesse.
 - Não fale de cupom.
 - Informe que os valores já estão com 50% OFF aplicado no valor final, sem necessidade de cupom.
 - Se perguntarem frete, informe: {FRETE_GRATIS}.
@@ -145,9 +153,14 @@ def normalizar_texto(texto):
 
 def pediu_menu(mensagem):
     texto = normalizar_texto(mensagem)
-    if texto in COMANDOS_MENU:
+    return texto in COMANDOS_MENU
+
+
+def pediu_promocao_inicial(mensagem):
+    texto = normalizar_texto(mensagem)
+    if texto in COMANDOS_PROMOCAO_INICIAL:
         return True
-    return any(gatilho in texto for gatilho in GATILHOS_MENU)
+    return any(gatilho in texto for gatilho in GATILHOS_PROMOCAO_INICIAL)
 
 
 def horario_atendimento_aberto():
@@ -189,6 +202,43 @@ Recebemos sua mensagem e uma consultora retornará no próximo horário útil.
 
 ⏰ Tempo médio de resposta:
 até 30 minutos."""
+
+
+def mensagem_promocao_relampago():
+    if horario_atendimento_aberto():
+        return f"""Olá! Seja bem-vindo(a) à Revita+. 💚
+
+Temos uma condição especial para você:
+
+⚡ {PROMOCAO_RELAMPAGO}
+
+🚚 {FRETE_GRATIS}
+🏷️ {PROMOCAO_ATUAL}
+💳 Pagamento: {FORMAS_PAGAMENTO}
+
+Para aproveitar, me responda com:
+QUERO A PROMOÇÃO
+
+Ou, se preferir, veja os produtos no site:
+{SITE_REVITA}"""
+
+    return f"""Olá! Seja bem-vindo(a) à Revita+. 💚
+
+Temos uma condição especial para você:
+
+⚡ {PROMOCAO_RELAMPAGO}
+
+🚚 {FRETE_GRATIS}
+🏷️ {PROMOCAO_ATUAL}
+💳 Pagamento: {FORMAS_PAGAMENTO}
+
+No momento estamos fora do horário de atendimento.
+Nosso atendimento funciona de segunda a sexta, das 08h às 18h.
+
+Recebemos sua mensagem e uma consultora retornará no próximo horário útil.
+
+Para aproveitar, me responda com:
+QUERO A PROMOÇÃO"""
 
 
 def pausar_cliente(telefone):
@@ -529,6 +579,9 @@ def resposta_fixa(mensagem):
     if pediu_produto_removido(mensagem):
         return mensagem_produto_removido()
 
+    if pediu_promocao_inicial(mensagem):
+        return mensagem_promocao_relampago()
+
     menu = resposta_menu(mensagem)
     if menu:
         return menu
@@ -731,7 +784,7 @@ def home():
             </form>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px;">
-                <a href="/rapida?msg=menu" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Menu</a>
+                <a href="/rapida?msg=oi" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Promoção</a>
                 <a href="/rapida?msg=Quero saber sobre ômega 3" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Ômega 3</a>
                 <a href="/rapida?msg=Quero algo para cabelo" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Cabelo</a>
                 <a href="/rapida?msg=Quero ver os produtos" style="text-align:center; background:#f1e8f6; padding:10px; border-radius:10px; color:#6f3c8f; text-decoration:none;">Produtos</a>
@@ -804,10 +857,24 @@ def webhook():
     if not telefone or not mensagem:
         return {"status": "ignorado", "motivo": "sem mensagem válida ou grupo/lista/status"}, 200
 
+    atualizar_ultima_interacao(telefone)
+
+    if pediu_promocao_inicial(mensagem):
+        remover_pausa_cliente(telefone)
+        resposta = mensagem_promocao_relampago()
+        enviado = enviar_whatsapp(telefone, resposta)
+        agendar_followup(telefone)
+        return {
+            "status": "ok",
+            "telefone": telefone,
+            "mensagem": mensagem,
+            "resposta": resposta,
+            "enviado": enviado,
+            "motivo": "promocao_relampago_inicial"
+        }, 200
+
     if not ia_deve_responder():
         return {"status": "ignorado", "motivo": "horario comercial com atendimento humano ativo"}, 200
-
-    atualizar_ultima_interacao(telefone)
 
     if pediu_menu(mensagem):
         remover_pausa_cliente(telefone)
