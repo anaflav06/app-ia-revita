@@ -16,6 +16,10 @@ GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL", "https://evolution-api-production-9927.up.railway.app")
 EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
 EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "Revita")
+PROMOCAO_BANNER_URL = os.getenv(
+    "PROMOCAO_BANNER_URL",
+    "https://res.cloudinary.com/yev40xqt/image/upload/v1782933996/WhatsApp_Image_2026-07-01_at_16.18.29_bknd0t.jpg"
+)
 
 TEMPO_PAUSA_MINUTOS = 10
 TEMPO_FOLLOWUP_MINUTOS = 60
@@ -25,7 +29,8 @@ ULTIMA_INTERACAO = {}
 TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 PROMOCAO_ATUAL = "50% OFF já aplicado no valor final, sem necessidade de cupom"
-PROMOCAO_RELAMPAGO = "Promoção-relâmpago exclusiva do WhatsApp: na compra de 2 Ômega 3, ganhe 1 Multivitamínico A-Z"
+PROMOCAO_RELAMPAGO = "Na compra de 2 Ômega 3 Revita+, ganhe 1 Multivitamínico A-Z GRÁTIS"
+VALOR_KIT_PROMOCAO = "R$ 109,98"
 FORMAS_PAGAMENTO = "boleto, Pix ou cartão em até 3x sem juros"
 FRETE_GRATIS = "Frete grátis para todo o Brasil"
 
@@ -206,39 +211,41 @@ até 30 minutos."""
 
 def mensagem_promocao_relampago():
     if horario_atendimento_aberto():
-        return f"""Olá! Seja bem-vindo(a) à Revita+. 💚
+        return f"""Olá! 😊 Seja bem-vindo(a) à Revita+ Suplementos.
 
-Temos uma condição especial para você:
+Aproveite nossa oferta exclusiva para clientes do WhatsApp! 👇
 
-⚡ {PROMOCAO_RELAMPAGO}
+🎁 {PROMOCAO_RELAMPAGO}.
 
-🚚 {FRETE_GRATIS}
-🏷️ {PROMOCAO_ATUAL}
-💳 Pagamento: {FORMAS_PAGAMENTO}
+💰 Valor do kit: {VALOR_KIT_PROMOCAO}.
 
-Para aproveitar, me responda com:
-QUERO A PROMOÇÃO
+💳 Formas de pagamento:
+• PIX
+• Boleto bancário
+• Cartão de crédito em até 3x sem juros
 
-Ou, se preferir, veja os produtos no site:
-{SITE_REVITA}"""
+📦 Enviamos para todo o Brasil com Nota Fiscal.
 
-    return f"""Olá! Seja bem-vindo(a) à Revita+. 💚
+Se desejar garantir essa oferta, responda com QUERO."""
 
-Temos uma condição especial para você:
+    return f"""Olá! 😊 Seja bem-vindo(a) à Revita+ Suplementos.
 
-⚡ {PROMOCAO_RELAMPAGO}
+No momento, nosso atendimento está fora do horário comercial, mas sua mensagem é muito importante para nós. Assim que retornarmos, responderemos o mais rápido possível.
 
-🚚 {FRETE_GRATIS}
-🏷️ {PROMOCAO_ATUAL}
-💳 Pagamento: {FORMAS_PAGAMENTO}
+Enquanto isso, aproveite nossa oferta exclusiva para clientes do WhatsApp! 👇
 
-No momento estamos fora do horário de atendimento.
-Nosso atendimento funciona de segunda a sexta, das 08h às 18h.
+🎁 {PROMOCAO_RELAMPAGO}.
 
-Recebemos sua mensagem e uma consultora retornará no próximo horário útil.
+💰 Valor do kit: {VALOR_KIT_PROMOCAO}.
 
-Para aproveitar, me responda com:
-QUERO A PROMOÇÃO"""
+💳 Formas de pagamento:
+• PIX
+• Boleto bancário
+• Cartão de crédito em até 3x sem juros
+
+📦 Enviamos para todo o Brasil com Nota Fiscal.
+
+Se desejar garantir essa oferta, responda com QUERO. Assim que nosso atendimento retornar, daremos continuidade ao seu pedido."""
 
 
 def pausar_cliente(telefone):
@@ -576,6 +583,9 @@ Você pode escolher pelo menu:
 
 
 def resposta_fixa(mensagem):
+    if cliente_respondeu_quero(mensagem):
+        return mensagem_quero_promocao()
+
     if pediu_produto_removido(mensagem):
         return mensagem_produto_removido()
 
@@ -763,6 +773,64 @@ def enviar_whatsapp(numero, texto):
         return False
 
 
+def enviar_imagem_whatsapp(numero, legenda=""):
+    if not EVOLUTION_API_KEY:
+        print("ERRO: EVOLUTION_API_KEY não configurada.")
+        return False
+
+    if not PROMOCAO_BANNER_URL:
+        print("ERRO: PROMOCAO_BANNER_URL não configurada.")
+        return False
+
+    url = f"{EVOLUTION_API_URL}/message/sendMedia/{EVOLUTION_INSTANCE}"
+    payload = {
+        "number": numero,
+        "mediatype": "image",
+        "mimetype": "image/jpeg",
+        "media": PROMOCAO_BANNER_URL,
+        "caption": legenda,
+        "fileName": "promocao-revita-whatsapp.jpg"
+    }
+    headers = {"apikey": EVOLUTION_API_KEY, "Content-Type": "application/json"}
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        print("Status envio imagem WhatsApp:", response.status_code)
+        print("Resposta Evolution imagem:", response.text)
+        return response.status_code in [200, 201]
+    except Exception as e:
+        print("Erro ao enviar imagem WhatsApp:", str(e))
+        return False
+
+
+def cliente_respondeu_quero(mensagem):
+    texto = normalizar_texto(mensagem)
+    return texto in [
+        "quero", "eu quero", "quero a promoção", "quero a promocao",
+        "quero promoção", "quero promocao", "quero o kit", "tenho interesse na promoção",
+        "tenho interesse na promocao"
+    ]
+
+
+def mensagem_quero_promocao():
+    return f"""Perfeito! 💚
+
+Vamos dar continuidade ao seu pedido da promoção exclusiva do WhatsApp:
+
+🎁 {PROMOCAO_RELAMPAGO}
+💰 Valor do kit: {VALOR_KIT_PROMOCAO}
+
+Para reservar sua oferta, me envie por favor:
+
+1️⃣ Nome completo
+2️⃣ CPF
+3️⃣ E-mail
+4️⃣ CEP e endereço completo
+5️⃣ Forma de pagamento: PIX, boleto ou cartão em até 3x sem juros
+
+📦 Enviamos para todo o Brasil com Nota Fiscal."""
+
+
 @app.route("/")
 def home():
     return """
@@ -862,6 +930,7 @@ def webhook():
     if pediu_promocao_inicial(mensagem):
         remover_pausa_cliente(telefone)
         resposta = mensagem_promocao_relampago()
+        imagem_enviada = enviar_imagem_whatsapp(telefone)
         enviado = enviar_whatsapp(telefone, resposta)
         agendar_followup(telefone)
         return {
@@ -869,6 +938,7 @@ def webhook():
             "telefone": telefone,
             "mensagem": mensagem,
             "resposta": resposta,
+            "imagem_enviada": imagem_enviada,
             "enviado": enviado,
             "motivo": "promocao_relampago_inicial"
         }, 200
