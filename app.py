@@ -170,7 +170,20 @@ def pediu_promocao_inicial(mensagem):
 
 def horario_atendimento_aberto():
     agora = datetime.now(TZ_BRASIL)
-    return agora.weekday() <= 4 and 8 <= agora.hour < 18
+    return agora.weekday() <= 4 and 8 <= agora.hour < 21
+
+
+def saudacao_horario():
+    agora = datetime.now(TZ_BRASIL)
+
+    if 8 <= agora.hour < 12:
+        return "Bom dia"
+
+    elif 12 <= agora.hour < 18:
+        return "Boa tarde"
+
+    else:
+        return "Boa noite"
 
 
 def ia_deve_responder():
@@ -187,7 +200,7 @@ def ia_deve_responder():
         return True
     if agora.weekday() >= 5:
         return True
-    if 8 <= agora.hour < 18:
+    if 8 <= agora.hour < 21:
         return False
     return True
 
@@ -201,7 +214,7 @@ até 30 minutos."""
 
     return """Claro! 💚
 
-Nosso atendimento funciona de segunda a sexta, das 08h às 18h.
+Nosso atendimento funciona de segunda a sexta, das 08h às 21h.
 
 Recebemos sua mensagem e uma consultora retornará no próximo horário útil.
 
@@ -210,8 +223,12 @@ até 30 minutos."""
 
 
 def mensagem_promocao_relampago():
+    saudacao = saudacao_horario()
+
     if horario_atendimento_aberto():
-        return f"""Olá! 😊 Seja bem-vindo(a) à Revita+ Suplementos.
+        return f"""Olá! 😊 {saudacao}!
+
+Seja bem-vindo(a) à Revita+ Suplementos.
 
 Aproveite nossa oferta exclusiva para clientes do WhatsApp! 👇
 
@@ -228,7 +245,9 @@ Aproveite nossa oferta exclusiva para clientes do WhatsApp! 👇
 
 Se desejar garantir essa oferta, responda com QUERO."""
 
-    return f"""Olá! 😊 Seja bem-vindo(a) à Revita+ Suplementos.
+    return f"""Olá! 😊 {saudacao}!
+
+Seja bem-vindo(a) à Revita+ Suplementos.
 
 No momento, nosso atendimento está fora do horário comercial, mas sua mensagem é muito importante para nós. Assim que retornarmos, responderemos o mais rápido possível.
 
@@ -246,7 +265,6 @@ Enquanto isso, aproveite nossa oferta exclusiva para clientes do WhatsApp! 👇
 📦 Enviamos para todo o Brasil com Nota Fiscal.
 
 Se desejar garantir essa oferta, responda com QUERO. Assim que nosso atendimento retornar, daremos continuidade ao seu pedido."""
-
 
 def pausar_cliente(telefone):
     if telefone:
@@ -417,7 +435,10 @@ Posso te apresentar as opções disponíveis da Revita+:
 
 
 def menu_principal():
-    return f"""Olá! 👋 Sou a assistente virtual da Revita+.
+    saudacao = saudacao_horario()
+    return f"""Olá! 👋 {saudacao}!
+
+Sou a assistente virtual da Revita+.
 
 Como posso te ajudar hoje?
 
@@ -635,7 +656,8 @@ CPF, nome completo, e-mail, forma de pagamento e o produto desejado."""
 
 
 def resposta_seguranca():
-    return """Claro, posso te ajudar. 💚
+    saudacao = saudacao_horario()
+    return f"""{saudacao}! Claro, posso te ajudar. 💚
 
 Não consegui entender 100% sua mensagem, mas posso te orientar por aqui.
 
@@ -673,8 +695,17 @@ Preço final com 50% OFF: {produto.get("preco", "")}
 Link direto: {produto.get("link", SITE_REVITA)}
 """
 
+        saudacao = saudacao_horario()
+
         prompt_completo = f"""
 {PROMPT_REVITA}
+
+Saudação obrigatória para este atendimento: {saudacao}.
+Nunca use uma saudação diferente dessa.
+Regras de saudação:
+- Das 08:00 às 11:59 use Bom dia.
+- Das 12:00 às 17:59 use Boa tarde.
+- Das 18:00 às 07:59 use Boa noite.
 
 {contexto}
 
@@ -987,4 +1018,3 @@ def webhook():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
