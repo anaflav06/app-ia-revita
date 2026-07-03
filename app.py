@@ -188,21 +188,13 @@ def saudacao_horario():
 
 def ia_deve_responder():
     agora = datetime.now(TZ_BRASIL)
-    hoje = agora.strftime("%Y-%m-%d")
 
-    feriados = [
-        "2026-01-01", "2026-02-16", "2026-02-17", "2026-04-03",
-        "2026-04-21", "2026-05-01", "2026-06-04", "2026-09-07",
-        "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25",
-    ]
-
-    if hoje in feriados:
-        return True
-    if agora.weekday() >= 5:
-        return True
-    if 8 <= agora.hour < 21:
-        return False
-    return True
+    # IA responde automaticamente somente das 23:59 às 04:59.
+    # Fora desse horário, a IA não responde automaticamente.
+    return (
+        (agora.hour == 23 and agora.minute >= 59)
+        or (0 <= agora.hour < 5)
+    )
 
 
 def mensagem_atendente():
